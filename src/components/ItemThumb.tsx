@@ -1,8 +1,13 @@
+import { useState } from 'react'
 import type { ClothingItem } from '../data/types'
 import { shopUrl } from '../data/items'
 import GarmentIcon from './GarmentIcon'
 
 export default function ItemThumb({ item, pinned }: { item: ClothingItem; pinned?: boolean }) {
+  const [imgError, setImgError] = useState(false)
+  const showPhoto = item.imageUrl && !imgError
+  const hasCustomDetails = item.brand.trim() || item.colorName.trim()
+
   return (
     <div
       className={`flex gap-3 rounded-xl border bg-white p-3 dark:bg-neutral-900 ${
@@ -11,8 +16,17 @@ export default function ItemThumb({ item, pinned }: { item: ClothingItem; pinned
           : 'border-neutral-200 dark:border-neutral-700'
       }`}
     >
-      <div className="flex h-16 w-16 shrink-0 items-center justify-center rounded-lg border border-neutral-200 bg-neutral-100 p-2 dark:border-neutral-700 dark:bg-neutral-800">
-        <GarmentIcon category={item.category} color={item.color} className="h-full w-full drop-shadow-sm" />
+      <div className="flex h-16 w-16 shrink-0 items-center justify-center overflow-hidden rounded-lg border border-neutral-200 bg-neutral-100 dark:border-neutral-700 dark:bg-neutral-800">
+        {showPhoto ? (
+          <img
+            src={item.imageUrl}
+            alt={item.name}
+            className="h-full w-full object-cover"
+            onError={() => setImgError(true)}
+          />
+        ) : (
+          <GarmentIcon category={item.category} color={item.color} className="h-full w-full p-2 drop-shadow-sm" />
+        )}
       </div>
       <div className="min-w-0 flex-1 text-left">
         {pinned && (
@@ -22,7 +36,9 @@ export default function ItemThumb({ item, pinned }: { item: ClothingItem; pinned
         )}
         <p className="truncate text-sm font-semibold text-neutral-900 dark:text-neutral-100">{item.name}</p>
         {item.custom ? (
-          <p className="truncate text-xs text-neutral-500 dark:text-neutral-400">Not in our catalog</p>
+          <p className="truncate text-xs text-neutral-500 dark:text-neutral-400">
+            {hasCustomDetails ? [item.brand, item.colorName].filter(Boolean).join(' · ') : 'Not in our catalog'}
+          </p>
         ) : (
           <>
             <p className="truncate text-xs text-neutral-500 dark:text-neutral-400">

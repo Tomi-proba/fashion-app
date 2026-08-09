@@ -22,6 +22,8 @@ export interface ClothingItem {
   tags: string[]
   /** True for a piece the user typed in themselves rather than one from the catalog. */
   custom?: boolean
+  /** Optional photo URL the user pasted in for a custom piece. */
+  imageUrl?: string
 }
 
 export interface OccasionProfile {
