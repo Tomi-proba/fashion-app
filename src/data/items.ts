@@ -99,6 +99,6 @@ export const items: ClothingItem[] = [
 export const itemById = (id: string) => items.find((i) => i.id === id)
 
 export function shopUrl(item: ClothingItem): string {
-  const query = encodeURIComponent(`${item.brand} ${item.name}`)
+  const query = encodeURIComponent([item.brand, item.name].filter(Boolean).join(' '))
   return `https://www.google.com/search?tbm=shop&q=${query}`
 }

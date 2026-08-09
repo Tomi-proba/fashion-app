@@ -20,6 +20,8 @@ export interface ClothingItem {
   color: string
   colorName: string
   tags: string[]
+  /** True for a piece the user typed in themselves rather than one from the catalog. */
+  custom?: boolean
 }
 
 export interface OccasionProfile {

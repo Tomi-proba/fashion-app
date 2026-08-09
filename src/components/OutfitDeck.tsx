@@ -1,12 +1,13 @@
 import { useMemo, useState } from 'react'
 import { motion, useMotionValue, useTransform, AnimatePresence } from 'framer-motion'
-import type { Outfit, OccasionProfile } from '../data/types'
+import type { ClothingItem, Outfit, OccasionProfile } from '../data/types'
 import { scoreOutfit } from '../lib/scoring'
 import OutfitCard from './OutfitCard'
 
 interface Props {
   outfits: Outfit[]
   occasion: OccasionProfile
+  pinnedItem?: ClothingItem | null
   onLike: (outfit: Outfit) => void
   onSkip: (outfit: Outfit) => void
 }
@@ -14,12 +15,14 @@ interface Props {
 function SwipeCard({
   outfit,
   occasion,
+  pinnedItem,
   onDecide,
   isTop,
   index,
 }: {
   outfit: Outfit
   occasion: OccasionProfile
+  pinnedItem?: ClothingItem | null
   onDecide: (dir: 'like' | 'skip') => void
   isTop: boolean
   index: number
@@ -65,12 +68,17 @@ function SwipeCard({
           </motion.div>
         </>
       )}
-      <OutfitCard outfit={outfit} result={result} className={isTop ? 'cursor-grab active:cursor-grabbing' : ''} />
+      <OutfitCard
+        outfit={outfit}
+        result={result}
+        pinnedItem={pinnedItem}
+        className={isTop ? 'cursor-grab active:cursor-grabbing' : ''}
+      />
     </motion.div>
   )
 }
 
-export default function OutfitDeck({ outfits, occasion, onLike, onSkip }: Props) {
+export default function OutfitDeck({ outfits, occasion, pinnedItem, onLike, onSkip }: Props) {
   const [cursor, setCursor] = useState(0)
   const visible = outfits.slice(cursor, cursor + 3)
   const current = outfits[cursor]
@@ -105,6 +113,7 @@ export default function OutfitDeck({ outfits, occasion, onLike, onSkip }: Props)
                 key={outfit.id}
                 outfit={outfit}
                 occasion={occasion}
+                pinnedItem={pinnedItem}
                 isTop={i === 0}
                 index={i}
                 onDecide={decide}

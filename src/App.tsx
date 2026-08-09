@@ -151,6 +151,7 @@ export default function App() {
               key={deckKey}
               outfits={deckOutfits}
               occasion={occasion}
+              pinnedItem={favoriteItem}
               onLike={(o) => setSaved((prev) => (prev.some((p) => p.id === o.id) ? prev : [...prev, o]))}
               onSkip={() => {}}
             />

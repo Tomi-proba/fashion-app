@@ -1,4 +1,4 @@
-import type { Outfit, ScoreResult } from '../data/types'
+import type { ClothingItem, Outfit, ScoreResult } from '../data/types'
 import { itemById } from '../data/items'
 import ItemThumb from './ItemThumb'
 import ScoreBadge from './ScoreBadge'
@@ -6,13 +6,15 @@ import ScoreBadge from './ScoreBadge'
 interface Props {
   outfit: Outfit
   result: ScoreResult
+  pinnedItem?: ClothingItem | null
   style?: React.CSSProperties
   className?: string
 }
 
-export default function OutfitCard({ outfit, result, style, className }: Props) {
+export default function OutfitCard({ outfit, result, pinnedItem, style, className }: Props) {
   const items = outfit.itemIds.map(itemById).filter((i): i is NonNullable<typeof i> => Boolean(i))
   const total = items.reduce((sum, i) => sum + i.price, 0)
+  const showPinned = pinnedItem && !outfit.itemIds.includes(pinnedItem.id)
 
   return (
     <div
@@ -30,6 +32,7 @@ export default function OutfitCard({ outfit, result, style, className }: Props) 
 
       <div className="flex-1 space-y-3 overflow-y-auto px-5 py-4">
         <ScoreBadge result={result} />
+        {showPinned && <ItemThumb item={pinnedItem} pinned />}
         <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
           {items.map((item) => (
             <ItemThumb key={item.id} item={item} />
