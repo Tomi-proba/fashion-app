@@ -5,6 +5,18 @@
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Fitcheck — Outfit Suggester</title>
+    <script>
+      (function () {
+        function sync() {
+          var explicit = document.documentElement.getAttribute('data-theme');
+          var dark = explicit ? explicit === 'dark' : window.matchMedia('(prefers-color-scheme: dark)').matches;
+          document.documentElement.classList.toggle('dark', dark);
+        }
+        sync();
+        window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', sync);
+        new MutationObserver(sync).observe(document.documentElement, { attributes: true, attributeFilter: ['data-theme'] });
+      })();
+    </script>
   </head>
   <body>
     <div id="root"></div>
