@@ -1,4 +1,4 @@
-import type { PortfolioResult, StrategyId, Trade } from '../types';
+import type { PortfolioResult, RiskLevel, StrategyId, Trade } from '../types';
 import { STRATEGIES } from './strategies';
 
 const FEE_RATE = 0.0015; // 0.15% per trade, same as a typical retail broker fee
@@ -7,7 +7,7 @@ const REBALANCE_BAND = 0.05; // ignore tiny signal changes to avoid fee-eating c
 // Replays a strategy over a price history starting from a cash-only position.
 // Used both for the marketplace "backtest" preview and for tracking a
 // currently-owned robot's live simulated value.
-export function simulatePortfolio(priceHistory: number[], strategyId: StrategyId, startValue: number): PortfolioResult {
+export function simulatePortfolio(priceHistory: number[], strategyId: StrategyId, risk: RiskLevel, startValue: number): PortfolioResult {
   const strategy = STRATEGIES[strategyId];
   let cash = startValue;
   let units = 0;
@@ -18,7 +18,7 @@ export function simulatePortfolio(priceHistory: number[], strategyId: StrategyId
     const price = priceHistory[i];
     const currentValue = cash + units * price;
     const history = priceHistory.slice(0, i + 1);
-    const targetFraction = strategy.targetFraction(history);
+    const targetFraction = strategy.targetFraction(history, risk);
     const currentFraction = currentValue > 0 ? (units * price) / currentValue : 0;
 
     if (currentValue > 0 && Math.abs(targetFraction - currentFraction) > REBALANCE_BAND) {

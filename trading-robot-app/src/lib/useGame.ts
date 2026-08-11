@@ -5,11 +5,12 @@ import { getLiveEquityCurve } from './ownedRobots';
 import { ASSETS, appendTick, absoluteLength, createInitialMarket } from './market';
 import { loadJSON, saveJSON, STORAGE_KEYS } from './storage';
 import { canClaimGrant, createInitialWallet, GRANT_AMOUNT } from './wallet';
-import type { AssetSymbol, MarketState, OwnedRobot, WalletState } from '../types';
+import type { AssetSymbol, MarketState, OwnedRobot, RiskLevel, WalletState } from '../types';
 
 const FLUSH_INTERVAL_MS = 1000; // batch fast trade streams into at most 1 UI/storage update per second
 const RECONNECT_BASE_MS = 2000;
 const RECONNECT_MAX_MS = 30000;
+export const MIN_ALLOCATION = 50;
 
 function loadOrCreateMarket(): MarketState {
   const stored = loadJSON<MarketState>(STORAGE_KEYS.market);
@@ -161,14 +162,17 @@ export function useGame() {
     });
   }, []);
 
-  const buyRobot = useCallback((robotId: string): BuyResult => {
+  const buyRobot = useCallback((robotId: string, assetSymbol: AssetSymbol, riskLevel: RiskLevel, capital: number): BuyResult => {
     const robot = getRobot(robotId);
     if (!robot) return { ok: false, message: 'Ismeretlen robot.' };
-    if (walletRef.current.balance < robot.price) {
-      return { ok: false, message: 'Nincs elég játékegyenleged ehhez a robothoz.' };
+    if (!Number.isFinite(capital) || capital < MIN_ALLOCATION) {
+      return { ok: false, message: `A minimum befektetett tőke ${MIN_ALLOCATION} kredit.` };
+    }
+    if (walletRef.current.balance < capital) {
+      return { ok: false, message: 'Nincs elég játékegyenleged ehhez az összeghez.' };
     }
     const m = marketRef.current;
-    const totalTicks = absoluteLength(m, robot.assetSymbol);
+    const totalTicks = absoluteLength(m, assetSymbol);
     if (totalTicks === 0) {
       return { ok: false, message: 'Még nem érkezett árfolyamadat ehhez az eszközhöz — várj egy pillanatot.' };
     }
@@ -176,12 +180,14 @@ export function useGame() {
     const newOwned: OwnedRobot = {
       instanceId: crypto.randomUUID(),
       robotId: robot.id,
+      assetSymbol,
+      riskLevel,
       purchasedAtIndex,
       purchasedAtRealTime: Date.now(),
-      costBasis: robot.price,
+      costBasis: capital,
       sold: false,
     };
-    setWallet((w) => ({ ...w, balance: w.balance - robot.price }));
+    setWallet((w) => ({ ...w, balance: w.balance - capital }));
     setOwned((list) => [...list, newOwned]);
     return { ok: true };
   }, []);
@@ -191,8 +197,7 @@ export function useGame() {
     if (!target) return;
     const equity = getLiveEquityCurve(target, marketRef.current);
     const value = equity[equity.length - 1] ?? target.costBasis;
-    const robot = getRobot(target.robotId);
-    const soldAtIndex = robot ? absoluteLength(marketRef.current, robot.assetSymbol) - 1 : target.purchasedAtIndex;
+    const soldAtIndex = absoluteLength(marketRef.current, target.assetSymbol) - 1;
     setOwned((list) =>
       list.map((o) => (o.instanceId === instanceId ? { ...o, sold: true, soldAtIndex, soldValue: value, soldAtRealTime: Date.now() } : o)),
     );

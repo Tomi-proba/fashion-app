@@ -38,13 +38,14 @@ csak akkor, ha ténylegesen futtatod az appot (`npm run dev`, vagy saját hostin
 
 ## Funkciók
 
-- **Piactér** — 6 robot, 4 különböző stratégiával (trendkövető, átlaghoz visszahúzó, momentum, rácsstratégia)
-  4 valós kriptovalután. Minden robotnál látható egy, a mai adatgyűjtésen alapuló teljesítménygrafikon,
-  kockázati szint, maximum visszaesés és volatilitás.
-- **Robotjaim** — a megvásárolt robotok élő, valós árfolyamon futó teljesítménye, "hány százalék térült meg a
-  vételárból" mutatóval, eladási lehetőséggel.
-- **Ranglista** — a robotok rangsorolva a mai hozam szerint ("copy trading" élmény: a "követés" gomb egyszerűen
-  megveszi az adott robotot).
+- **Piactér** — 4 robot-stratégia (trendkövető, átlaghoz visszahúzó, momentum, rácsstratégia). Mindegyiket egy
+  lépésben állítod be és veszed meg: választasz eszközt (BTC/ETH/SOL/DOGE), kockázati szintet (alacsony/közepes/
+  magas — ez ténylegesen befolyásolja, mekkora kilengéssel kereskedik) és befektetett tőkét. A vásárlás egyszeri
+  — utána a beállítást már nem kell (és nem is lehet) újra megvenni, csak eladással lehet lezárni a pozíciót.
+- **Robotjaim** — a megvásárolt (konfigurált) robot-példányok élő, valós árfolyamon futó teljesítménye, "hány
+  százalék térült meg a vételárból" mutatóval, eladási lehetőséggel.
+- **Ranglista** — az összes stratégia × eszköz kombináció mai hozama közepes kockázaton, rangsorolva — ez segít
+  eldönteni, mi teljesített ma a legjobban, majd egy gombbal meg is nyitja a beállító/vásárló ablakot.
 - **Áttekintés** — teljes vagyon, egyenleg, a figyelt kriptovaluták élő árfolyama és utolsó kereskedésük ideje.
 - **Adatforrás** — az adatforrás magyarázata, kapcsolat állapota, kézi frissítés.
 - **Játékpénz** — indulórakomány + naponta egyszer igényelhető extra egyenleg.
@@ -56,7 +57,11 @@ csak akkor, ha ténylegesen futtatod az appot (`npm run dev`, vagy saját hostin
   hogy egy pörgős pár (pl. BTC/ETH) adatfolyama ne terhelje túl a UI-t vagy a `localStorage`-ot.
   Kapcsolatvesztés esetén exponenciális backoff-fal újracsatlakozik.
 - Minden stratégia (`src/lib/strategies.ts`) az árfolyam-történetből számol egy célzott kitettséget (0–100%),
-  amit a portfóliókezelő (`src/lib/portfolio.ts`) 0,15%-os kereskedési díj mellett érvényesít.
+  amit a kockázati szint egy szorzóval erősít vagy tompít (`RISK_MULTIPLIER`: alacsony 0,5×, közepes 1×, magas
+  1,8×), majd a portfóliókezelő (`src/lib/portfolio.ts`) 0,15%-os kereskedési díj mellett érvényesít.
+- Egy `RobotDef` (`src/data/robots.ts`) csak a stratégiát jelöli — az eszközt, a kockázati szintet és a tőkét a
+  `RobotConfigModal` komponensben választod ki vásárláskor; ezek az `OwnedRobot` példányon tárolódnak, nem a
+  robot-katalógusban.
 - A megőrzött árfolyam-történet szimbólumonként korlátozott (`src/lib/market.ts`, `MAX_HISTORY_LENGTH`) — amikor
   betelik, a legrégebbi pontok lekerülnek, de egy abszolút index-eltolás (`historyOffsets`) miatt egy régebben
   vásárolt robot költségalapja akkor is helyesen követhető marad, ha időközben a pontjai már lekerültek

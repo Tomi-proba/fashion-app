@@ -22,7 +22,7 @@ export default function App() {
         )}
         {tab === 'marketplace' && <Marketplace market={market} wallet={wallet} owned={owned} onBuy={buyRobot} />}
         {tab === 'myRobots' && <MyRobots market={market} owned={owned} onSell={sellRobot} />}
-        {tab === 'leaderboard' && <Leaderboard market={market} onBuy={buyRobot} />}
+        {tab === 'leaderboard' && <Leaderboard market={market} wallet={wallet} onBuy={buyRobot} />}
         {tab === 'settings' && (
           <DataSourceInfo connectionStatus={market.connectionStatus} connectionError={market.connectionError} onRefresh={refreshQuotes} />
         )}

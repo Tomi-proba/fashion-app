@@ -1,9 +1,14 @@
 import { getRobot } from '../data/robots';
+import { ASSETS } from '../lib/market';
 import { formatCredits, formatPct } from '../lib/format';
 import { getLiveEquityCurve, getOwnedStats } from '../lib/ownedRobots';
 import RiskBadge from './RiskBadge';
 import SparklineChart from './SparklineChart';
 import type { MarketState, OwnedRobot } from '../types';
+
+function assetName(symbol: string): string {
+  return ASSETS.find((a) => a.symbol === symbol)?.name ?? symbol;
+}
 
 interface MyRobotsProps {
   market: MarketState;
@@ -44,10 +49,10 @@ export default function MyRobots({ market, owned, onSell }: MyRobotsProps) {
                   <div>
                     <div className="flex items-center gap-2">
                       <h3 className="font-semibold text-slate-900 dark:text-slate-100">{robot.name}</h3>
-                      <RiskBadge level={robot.riskLevel} />
+                      <RiskBadge level={o.riskLevel} />
                     </div>
                     <div className="text-xs text-slate-500 dark:text-slate-400">
-                      Vételár: {formatCredits(o.costBasis)} · Jelenlegi érték: {formatCredits(stats.currentValue)}
+                      {assetName(o.assetSymbol)} · Vételár: {formatCredits(o.costBasis)} · Jelenlegi érték: {formatCredits(stats.currentValue)}
                     </div>
                     <div className="mt-1 h-1.5 w-40 overflow-hidden rounded-full bg-slate-200 dark:bg-slate-700">
                       <div className="h-full bg-indigo-500" style={{ width: `${recoveredPct}%` }} />
@@ -84,7 +89,7 @@ export default function MyRobots({ market, owned, onSell }: MyRobotsProps) {
               const stats = getOwnedStats(o, market);
               return (
                 <div key={o.instanceId} className="flex items-center justify-between rounded-xl border border-slate-200 bg-white px-4 py-2 text-sm dark:border-slate-800 dark:bg-slate-900">
-                  <span className="text-slate-700 dark:text-slate-200">{robot.name}</span>
+                  <span className="text-slate-700 dark:text-slate-200">{robot.name} <span className="text-slate-400">({assetName(o.assetSymbol)})</span></span>
                   <span className="text-slate-400">{formatCredits(o.costBasis)} → {formatCredits(o.soldValue ?? 0)}</span>
                   <span className={stats.roiPct >= 0 ? 'font-semibold text-emerald-600' : 'font-semibold text-rose-500'}>
                     {formatPct(stats.roiPct)}

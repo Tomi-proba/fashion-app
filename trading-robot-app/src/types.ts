@@ -2,7 +2,9 @@ export type AssetSymbol = 'BTCUSDT' | 'ETHUSDT' | 'SOLUSDT' | 'DOGEUSDT';
 
 export type StrategyId = 'trend' | 'meanReversion' | 'momentum' | 'grid';
 
-export type RiskLevel = 'közepes' | 'magas';
+// Not a fixed label anymore — a real multiplier on how aggressively the
+// strategy swings its position size (see lib/strategies.ts RISK_MULTIPLIER).
+export type RiskLevel = 'alacsony' | 'közepes' | 'magas';
 
 export interface AssetDef {
   symbol: AssetSymbol;
@@ -13,18 +15,17 @@ export interface StrategyDef {
   id: StrategyId;
   name: string;
   description: string;
-  targetFraction: (history: number[]) => number;
+  targetFraction: (history: number[], risk: RiskLevel) => number;
 }
 
+// A robot "type" — a strategy you can configure and buy. It has no fixed
+// asset, risk level, or price: those are chosen once, together, at purchase.
 export interface RobotDef {
   id: string;
   name: string;
   tagline: string;
   description: string;
   strategyId: StrategyId;
-  assetSymbol: AssetSymbol;
-  riskLevel: RiskLevel;
-  price: number;
 }
 
 export type ConnectionStatus = 'connecting' | 'open' | 'closed' | 'error';
@@ -48,6 +49,8 @@ export interface WalletState {
 export interface OwnedRobot {
   instanceId: string;
   robotId: string;
+  assetSymbol: AssetSymbol;
+  riskLevel: RiskLevel;
   purchasedAtIndex: number;
   purchasedAtRealTime: number;
   costBasis: number;

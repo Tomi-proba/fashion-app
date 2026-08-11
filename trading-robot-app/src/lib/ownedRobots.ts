@@ -8,8 +8,8 @@ import { computeStats, simulatePortfolio } from './portfolio';
 export function getLiveEquityCurve(owned: OwnedRobot, market: MarketState): number[] {
   const robot = getRobot(owned.robotId);
   if (!robot) return [owned.costBasis];
-  const fullHistory = market.histories[robot.assetSymbol];
-  const offset = market.historyOffsets[robot.assetSymbol];
+  const fullHistory = market.histories[owned.assetSymbol];
+  const offset = market.historyOffsets[owned.assetSymbol];
 
   const startAbs = owned.purchasedAtIndex;
   const endAbs = owned.sold && owned.soldAtIndex !== undefined ? owned.soldAtIndex + 1 : offset + fullHistory.length;
@@ -19,7 +19,7 @@ export function getLiveEquityCurve(owned: OwnedRobot, market: MarketState): numb
   const sliceHistory = fullHistory.slice(startLocal, endLocal);
 
   if (sliceHistory.length === 0) return [owned.costBasis];
-  const { equity } = simulatePortfolio(sliceHistory, robot.strategyId, owned.costBasis);
+  const { equity } = simulatePortfolio(sliceHistory, robot.strategyId, owned.riskLevel, owned.costBasis);
   return equity;
 }
 
