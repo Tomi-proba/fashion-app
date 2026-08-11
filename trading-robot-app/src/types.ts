@@ -1,4 +1,4 @@
-export type AssetSymbol = 'DEMO-TECH' | 'DEMO-GOLD' | 'DEMO-CRYPTO' | 'DEMO-ENERGY';
+export type AssetSymbol = 'AAPL' | 'KO' | 'TSLA' | 'XOM';
 
 export type StrategyId = 'trend' | 'meanReversion' | 'momentum' | 'grid';
 
@@ -7,9 +7,6 @@ export type RiskLevel = 'alacsony' | 'közepes' | 'magas';
 export interface AssetDef {
   symbol: AssetSymbol;
   name: string;
-  startPrice: number;
-  driftAnnual: number;
-  volAnnual: number;
 }
 
 export interface StrategyDef {
@@ -30,10 +27,16 @@ export interface RobotDef {
   price: number;
 }
 
+export type ConnectionStatus = 'no-key' | 'connecting' | 'open' | 'closed' | 'error';
+
 export interface MarketState {
-  rngState: number;
-  t: number;
   histories: Record<AssetSymbol, number[]>;
+  // Absolute index of histories[symbol][0] — grows as old points are trimmed off the front,
+  // so an OwnedRobot's purchasedAtIndex (also absolute) can still be located after trimming.
+  historyOffsets: Record<AssetSymbol, number>;
+  lastTradeAt: Record<AssetSymbol, number | null>;
+  connectionStatus: ConnectionStatus;
+  connectionError: string | null;
 }
 
 export interface WalletState {

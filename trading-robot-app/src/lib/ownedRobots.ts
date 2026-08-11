@@ -2,12 +2,22 @@ import { getRobot } from '../data/robots';
 import type { MarketState, OwnedRobot } from '../types';
 import { computeStats, simulatePortfolio } from './portfolio';
 
+// OwnedRobot indices are absolute (never reset), but market.histories only keeps
+// the most recent MAX_HISTORY_LENGTH points per symbol — this maps an absolute
+// index back into the currently-available slice, clamping to what's still there.
 export function getLiveEquityCurve(owned: OwnedRobot, market: MarketState): number[] {
   const robot = getRobot(owned.robotId);
   if (!robot) return [owned.costBasis];
   const fullHistory = market.histories[robot.assetSymbol];
-  const endIndex = owned.sold && owned.soldAtIndex !== undefined ? owned.soldAtIndex + 1 : fullHistory.length;
-  const sliceHistory = fullHistory.slice(owned.purchasedAtIndex, endIndex);
+  const offset = market.historyOffsets[robot.assetSymbol];
+
+  const startAbs = owned.purchasedAtIndex;
+  const endAbs = owned.sold && owned.soldAtIndex !== undefined ? owned.soldAtIndex + 1 : offset + fullHistory.length;
+
+  const startLocal = Math.max(0, startAbs - offset);
+  const endLocal = Math.max(startLocal, endAbs - offset);
+  const sliceHistory = fullHistory.slice(startLocal, endLocal);
+
   if (sliceHistory.length === 0) return [owned.costBasis];
   const { equity } = simulatePortfolio(sliceHistory, robot.strategyId, owned.costBasis);
   return equity;

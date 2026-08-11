@@ -32,8 +32,8 @@ export default function Marketplace({ market, wallet, owned, onBuy }: Marketplac
     <div>
       <h1 className="mb-1 text-xl font-semibold text-slate-900 dark:text-slate-100">Piactér</h1>
       <p className="mb-4 text-sm text-slate-500 dark:text-slate-400">
-        Válassz kereskedő robotot. Mindegyik más stratégiával és más szimulált eszközön fut — a kockázati szint
-        és a szimulált visszateszt segít eligazodni, de garantált hozamot egyik sem ígér.
+        Válassz kereskedő robotot. Mindegyik más stratégiával és más valós, élő árfolyamon futó részvényen fut —
+        a kockázati szint és a mai adatgyűjtésen alapuló hozam segít eligazodni, de garantált hozamot egyik sem ígér.
       </p>
 
       {notice && (

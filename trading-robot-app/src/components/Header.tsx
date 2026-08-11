@@ -1,25 +1,28 @@
 import { useState } from 'react';
 import { formatCredits } from '../lib/format';
 import { canClaimGrant, GRANT_AMOUNT, msUntilNextGrant } from '../lib/wallet';
-import type { WalletState } from '../types';
+import ConnectionStatus from './ConnectionStatus';
+import type { ConnectionStatus as Status, WalletState } from '../types';
 
-export type Tab = 'dashboard' | 'marketplace' | 'myRobots' | 'leaderboard';
+export type Tab = 'dashboard' | 'marketplace' | 'myRobots' | 'leaderboard' | 'settings';
 
 const TABS: { id: Tab; label: string }[] = [
   { id: 'dashboard', label: 'Áttekintés' },
   { id: 'marketplace', label: 'Piactér' },
   { id: 'myRobots', label: 'Robotjaim' },
   { id: 'leaderboard', label: 'Ranglista' },
+  { id: 'settings', label: 'Beállítások' },
 ];
 
 interface HeaderProps {
   wallet: WalletState;
+  connectionStatus: Status;
   activeTab: Tab;
   onTabChange: (tab: Tab) => void;
   onGrant: () => void;
 }
 
-export default function Header({ wallet, activeTab, onTabChange, onGrant }: HeaderProps) {
+export default function Header({ wallet, connectionStatus, activeTab, onTabChange, onGrant }: HeaderProps) {
   const [showDepositInfo, setShowDepositInfo] = useState(false);
   const canGrant = canClaimGrant(wallet, Date.now());
   const cooldownMs = msUntilNextGrant(wallet, Date.now());
@@ -49,6 +52,7 @@ export default function Header({ wallet, activeTab, onTabChange, onGrant }: Head
         </nav>
 
         <div className="flex items-center gap-2">
+          <ConnectionStatus status={connectionStatus} />
           <div className="rounded-lg bg-slate-100 px-3 py-1.5 text-sm font-semibold text-slate-800 dark:bg-slate-800 dark:text-slate-100">
             {formatCredits(wallet.balance)}
           </div>
@@ -70,7 +74,7 @@ export default function Header({ wallet, activeTab, onTabChange, onGrant }: Head
             {showDepositInfo && (
               <div className="absolute right-0 z-20 mt-2 w-64 rounded-lg border border-slate-200 bg-white p-3 text-xs text-slate-600 shadow-lg dark:border-slate-700 dark:bg-slate-800 dark:text-slate-300">
                 Valós pénzes befizetés jelenleg nincs bekapcsolva ebben az alkalmazásban. Az összes egyenleg és
-                kereskedés játékpénzzel, szimulációban zajlik.
+                kereskedés játékpénzzel, szimulációban zajlik — csak az árfolyamadat valós.
               </div>
             )}
           </div>

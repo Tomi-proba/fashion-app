@@ -1,42 +1,46 @@
 import type { AssetDef, AssetSymbol, MarketState } from '../types';
-import { nextGaussian } from './rng';
 
 export const ASSETS: AssetDef[] = [
-  { symbol: 'DEMO-TECH', name: 'Demo Tech Kosár', startPrice: 100, driftAnnual: 0.12, volAnnual: 0.35 },
-  { symbol: 'DEMO-GOLD', name: 'Demo Arany Index', startPrice: 100, driftAnnual: 0.04, volAnnual: 0.12 },
-  { symbol: 'DEMO-CRYPTO', name: 'Demo Kripto Kosár', startPrice: 100, driftAnnual: 0.2, volAnnual: 0.7 },
-  { symbol: 'DEMO-ENERGY', name: 'Demo Energia Index', startPrice: 100, driftAnnual: 0.06, volAnnual: 0.25 },
+  { symbol: 'AAPL', name: 'Apple Inc.' },
+  { symbol: 'KO', name: 'Coca-Cola Co.' },
+  { symbol: 'TSLA', name: 'Tesla Inc.' },
+  { symbol: 'XOM', name: 'Exxon Mobil Corp.' },
 ];
 
-const DT = 1 / 252;
+// Keep at most this many recent trade points per symbol so localStorage and
+// moving-average windows stay bounded during a long-running session.
+const MAX_HISTORY_LENGTH = 3000;
 
-export function createInitialMarket(seed: number): MarketState {
+export function createInitialMarket(): MarketState {
   const histories = {} as Record<AssetSymbol, number[]>;
+  const historyOffsets = {} as Record<AssetSymbol, number>;
+  const lastTradeAt = {} as Record<AssetSymbol, number | null>;
   for (const asset of ASSETS) {
-    histories[asset.symbol] = [asset.startPrice];
+    histories[asset.symbol] = [];
+    historyOffsets[asset.symbol] = 0;
+    lastTradeAt[asset.symbol] = null;
   }
-  return { rngState: seed >>> 0, t: 0, histories };
+  return { histories, historyOffsets, lastTradeAt, connectionStatus: 'no-key', connectionError: null };
 }
 
-export function advanceMarket(market: MarketState, steps: number): MarketState {
-  let rngState = market.rngState;
+// Appends a real trade price for a symbol, trimming from the front (and
+// bumping the offset) once the cap is hit so absolute indices stay valid.
+export function appendTick(market: MarketState, symbol: AssetSymbol, price: number, atMs: number): MarketState {
   const histories = { ...market.histories };
-  for (const asset of ASSETS) {
-    histories[asset.symbol] = [...histories[asset.symbol]];
-  }
+  const historyOffsets = { ...market.historyOffsets };
+  const lastTradeAt = { ...market.lastTradeAt, [symbol]: atMs };
 
-  for (let step = 0; step < steps; step++) {
-    for (const asset of ASSETS) {
-      const g = nextGaussian(rngState);
-      rngState = g.nextState;
-      const series = histories[asset.symbol];
-      const last = series[series.length - 1];
-      const price = last * Math.exp(
-        (asset.driftAnnual - 0.5 * asset.volAnnual ** 2) * DT + asset.volAnnual * Math.sqrt(DT) * g.value,
-      );
-      series.push(Math.max(price, 0.01));
-    }
+  const series = [...histories[symbol], price];
+  if (series.length > MAX_HISTORY_LENGTH) {
+    const overflow = series.length - MAX_HISTORY_LENGTH;
+    series.splice(0, overflow);
+    historyOffsets[symbol] = historyOffsets[symbol] + overflow;
   }
+  histories[symbol] = series;
 
-  return { rngState, t: market.t + steps, histories };
+  return { ...market, histories, historyOffsets, lastTradeAt };
+}
+
+export function absoluteLength(market: MarketState, symbol: AssetSymbol): number {
+  return market.historyOffsets[symbol] + market.histories[symbol].length;
 }

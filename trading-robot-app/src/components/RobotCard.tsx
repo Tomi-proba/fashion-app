@@ -35,10 +35,14 @@ export default function RobotCard({ robot, market, ownedCount, canAfford, onBuy,
       </button>
 
       <div className="flex items-center justify-between text-sm">
-        <span className="text-slate-500 dark:text-slate-400">Szimulált hozam a piactér indulása óta</span>
-        <span className={stats.roiPct >= 0 ? 'font-semibold text-emerald-600' : 'font-semibold text-rose-500'}>
-          {formatPct(stats.roiPct)}
-        </span>
+        <span className="text-slate-500 dark:text-slate-400">Hozam a mai adatgyűjtés óta</span>
+        {equity.length < 5 ? (
+          <span className="text-slate-400">adatgyűjtés…</span>
+        ) : (
+          <span className={stats.roiPct >= 0 ? 'font-semibold text-emerald-600' : 'font-semibold text-rose-500'}>
+            {formatPct(stats.roiPct)}
+          </span>
+        )}
       </div>
 
       <div className="mt-auto flex items-center justify-between gap-2 pt-1">

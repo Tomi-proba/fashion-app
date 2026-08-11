@@ -20,8 +20,8 @@ export default function Leaderboard({ market, onBuy }: LeaderboardProps) {
     <div>
       <h1 className="mb-1 text-xl font-semibold text-slate-900 dark:text-slate-100">Ranglista</h1>
       <p className="mb-4 text-sm text-slate-500 dark:text-slate-400">
-        A robotok szimulált, visszatesztelt teljesítménye alapján rangsorolva a piactér indulása óta. Ez nem
-        valós más felhasználók eredménye — egyjátékos demó, a "követés" a robot megvásárlását jelenti.
+        A robotok valós, élő árfolyamon futtatott teljesítménye alapján rangsorolva, a mai adatgyűjtés óta. Ez
+        nem valós más felhasználók eredménye — egyjátékos demó, a "követés" a robot megvásárlását jelenti.
       </p>
 
       <div className="overflow-hidden rounded-2xl border border-slate-200 dark:border-slate-800">
@@ -37,14 +37,14 @@ export default function Leaderboard({ market, onBuy }: LeaderboardProps) {
             </tr>
           </thead>
           <tbody>
-            {ranked.map(({ robot, stats }, i) => (
+            {ranked.map(({ robot, stats, equity }, i) => (
               <tr key={robot.id} className="border-t border-slate-100 dark:border-slate-800">
                 <td className="px-4 py-3 text-slate-400">{i + 1}</td>
                 <td className="px-4 py-3 font-medium text-slate-900 dark:text-slate-100">{robot.name}</td>
                 <td className="px-4 py-3 hidden text-slate-500 dark:text-slate-400 sm:table-cell">{STRATEGIES[robot.strategyId].name}</td>
                 <td className="px-4 py-3"><RiskBadge level={robot.riskLevel} /></td>
                 <td className={`px-4 py-3 font-semibold ${stats.roiPct >= 0 ? 'text-emerald-600' : 'text-rose-500'}`}>
-                  {formatPct(stats.roiPct)}
+                  {equity.length < 5 ? <span className="font-normal text-slate-400">adatgyűjtés…</span> : formatPct(stats.roiPct)}
                 </td>
                 <td className="px-4 py-3 text-right">
                   <button
