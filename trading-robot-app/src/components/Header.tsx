@@ -11,7 +11,7 @@ const TABS: { id: Tab; label: string }[] = [
   { id: 'marketplace', label: 'Piactér' },
   { id: 'myRobots', label: 'Robotjaim' },
   { id: 'leaderboard', label: 'Ranglista' },
-  { id: 'settings', label: 'Beállítások' },
+  { id: 'settings', label: 'Adatforrás' },
 ];
 
 interface HeaderProps {

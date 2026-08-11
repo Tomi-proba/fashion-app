@@ -1,7 +1,6 @@
 import type { ConnectionStatus as Status } from '../types';
 
 const LABELS: Record<Status, string> = {
-  'no-key': 'nincs API-kulcs',
   connecting: 'csatlakozás…',
   open: 'élő',
   closed: 'megszakadt',
@@ -9,7 +8,6 @@ const LABELS: Record<Status, string> = {
 };
 
 const DOT_STYLES: Record<Status, string> = {
-  'no-key': 'bg-slate-400',
   connecting: 'bg-amber-500 animate-pulse',
   open: 'bg-emerald-500',
   closed: 'bg-amber-500',

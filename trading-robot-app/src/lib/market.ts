@@ -1,10 +1,10 @@
 import type { AssetDef, AssetSymbol, MarketState } from '../types';
 
 export const ASSETS: AssetDef[] = [
-  { symbol: 'AAPL', name: 'Apple Inc.' },
-  { symbol: 'KO', name: 'Coca-Cola Co.' },
-  { symbol: 'TSLA', name: 'Tesla Inc.' },
-  { symbol: 'XOM', name: 'Exxon Mobil Corp.' },
+  { symbol: 'BTCUSDT', name: 'Bitcoin' },
+  { symbol: 'ETHUSDT', name: 'Ethereum' },
+  { symbol: 'SOLUSDT', name: 'Solana' },
+  { symbol: 'DOGEUSDT', name: 'Dogecoin' },
 ];
 
 // Keep at most this many recent trade points per symbol so localStorage and
@@ -20,7 +20,7 @@ export function createInitialMarket(): MarketState {
     historyOffsets[asset.symbol] = 0;
     lastTradeAt[asset.symbol] = null;
   }
-  return { histories, historyOffsets, lastTradeAt, connectionStatus: 'no-key', connectionError: null };
+  return { histories, historyOffsets, lastTradeAt, connectionStatus: 'connecting', connectionError: null };
 }
 
 // Appends a real trade price for a symbol, trimming from the front (and

@@ -35,7 +35,7 @@ export default function Dashboard({ market, wallet, owned, onRefresh, onNavigate
     <div>
       <h1 className="mb-1 text-xl font-semibold text-slate-900 dark:text-slate-100">Áttekintés</h1>
       <p className="mb-4 text-sm text-slate-500 dark:text-slate-400">
-        Az árfolyamok valósak (Finnhub élő adatfolyam), a kereskedés és a pénz szimulált.
+        Az árfolyamok valósak (Binance élő adatfolyam, 0–24), a kereskedés és a pénz szimulált.
       </p>
 
       <div className="mb-6 grid grid-cols-1 gap-4 sm:grid-cols-3">
@@ -64,7 +64,7 @@ export default function Dashboard({ market, wallet, owned, onRefresh, onNavigate
         </button>
       </div>
 
-      <h2 className="mb-2 text-sm font-semibold text-slate-500 dark:text-slate-400">Figyelt részvények (valós, élő árfolyam)</h2>
+      <h2 className="mb-2 text-sm font-semibold text-slate-500 dark:text-slate-400">Figyelt kriptovaluták (valós, élő árfolyam)</h2>
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
         {ASSETS.map((asset) => {
           const history = market.histories[asset.symbol];

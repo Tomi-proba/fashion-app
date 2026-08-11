@@ -1,11 +1,10 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { getRobot } from '../data/robots';
-import { fetchQuote, buildWsUrl, subscribeMessage, parseWsMessage, FinnhubError } from './finnhub';
+import { fetchTicker, WS_URL, subscribeMessage, parseWsMessage, BinanceError } from './binance';
 import { getLiveEquityCurve } from './ownedRobots';
 import { ASSETS, appendTick, absoluteLength, createInitialMarket } from './market';
 import { loadJSON, saveJSON, STORAGE_KEYS } from './storage';
 import { canClaimGrant, createInitialWallet, GRANT_AMOUNT } from './wallet';
-import { loadApiKey, saveApiKey, clearApiKey } from './apiKey';
 import type { AssetSymbol, MarketState, OwnedRobot, WalletState } from '../types';
 
 const FLUSH_INTERVAL_MS = 1000; // batch fast trade streams into at most 1 UI/storage update per second
@@ -14,7 +13,7 @@ const RECONNECT_MAX_MS = 30000;
 
 function loadOrCreateMarket(): MarketState {
   const stored = loadJSON<MarketState>(STORAGE_KEYS.market);
-  if (stored) return { ...stored, connectionStatus: 'no-key', connectionError: null };
+  if (stored) return { ...stored, connectionStatus: 'connecting', connectionError: null };
   return createInitialMarket();
 }
 
@@ -32,7 +31,6 @@ export interface BuyResult {
 }
 
 export function useGame() {
-  const [apiKey, setApiKeyState] = useState<string | null>(loadApiKey);
   const [market, setMarket] = useState<MarketState>(loadOrCreateMarket);
   const [wallet, setWallet] = useState<WalletState>(loadOrCreateWallet);
   const [owned, setOwned] = useState<OwnedRobot[]>(loadOrCreateOwned);
@@ -48,14 +46,10 @@ export function useGame() {
   useEffect(() => saveJSON(STORAGE_KEYS.wallet, wallet), [wallet]);
   useEffect(() => saveJSON(STORAGE_KEYS.owned, owned), [owned]);
 
-  // Live Finnhub connection: REST bootstrap + WebSocket trade stream, batched into
-  // the market state at most once a second so a busy stock doesn't hammer React/localStorage.
+  // Live Binance connection: public REST bootstrap + public WebSocket trade stream, no API
+  // key or account involved. Batched into market state at most once a second so a busy pair
+  // (BTC/ETH trade very frequently) doesn't hammer React/localStorage.
   useEffect(() => {
-    if (!apiKey) {
-      setMarket((m) => ({ ...m, connectionStatus: 'no-key', connectionError: null }));
-      return;
-    }
-
     let active = true;
     let ws: WebSocket | null = null;
     let reconnectAttempt = 0;
@@ -78,13 +72,13 @@ export function useGame() {
     function connect() {
       if (!active) return;
       setMarket((m) => ({ ...m, connectionStatus: 'connecting', connectionError: null }));
-      ws = new WebSocket(buildWsUrl(apiKey as string));
+      ws = new WebSocket(WS_URL);
 
       ws.onopen = () => {
         if (!active) return;
         reconnectAttempt = 0;
         setMarket((m) => ({ ...m, connectionStatus: 'open', connectionError: null }));
-        for (const asset of ASSETS) ws?.send(subscribeMessage(asset.symbol));
+        ws?.send(subscribeMessage(ASSETS.map((a) => a.symbol)));
       };
 
       ws.onmessage = (event) => {
@@ -112,7 +106,7 @@ export function useGame() {
     }
 
     async function bootstrap() {
-      const results = await Promise.allSettled(ASSETS.map((asset) => fetchQuote(apiKey as string, asset.symbol)));
+      const results = await Promise.allSettled(ASSETS.map((asset) => fetchTicker(asset.symbol)));
       if (!active) return;
       let firstError: string | null = null;
       setMarket((m) => {
@@ -126,16 +120,15 @@ export function useGame() {
               next = appendTick(next, symbol, q.price, q.timestampMs);
             }
           } else if (!firstError) {
-            firstError = result.reason instanceof FinnhubError ? result.reason.message : 'Nem sikerült lekérni a kezdő árfolyamot.';
+            firstError = result.reason instanceof BinanceError ? result.reason.message : 'Nem sikerült lekérni a kezdő árfolyamot.';
           }
         });
         return next;
       });
+      connect(); // the WebSocket stream keeps working even if the one-off REST bootstrap failed
       if (firstError) {
-        setMarket((m) => ({ ...m, connectionStatus: 'error', connectionError: firstError }));
-        return; // bad key etc. — don't open a websocket that will just fail too
+        setMarket((m) => (m.connectionStatus === 'connecting' ? { ...m, connectionError: firstError } : m));
       }
-      connect();
     }
 
     bootstrap();
@@ -146,21 +139,10 @@ export function useGame() {
       if (reconnectTimer) clearTimeout(reconnectTimer);
       ws?.close();
     };
-  }, [apiKey]);
-
-  const setApiKey = useCallback((key: string) => {
-    saveApiKey(key);
-    setApiKeyState(key.trim());
-  }, []);
-
-  const removeApiKey = useCallback(() => {
-    clearApiKey();
-    setApiKeyState(null);
   }, []);
 
   const refreshQuotes = useCallback(async () => {
-    if (!apiKey) return;
-    const results = await Promise.allSettled(ASSETS.map((asset) => fetchQuote(apiKey, asset.symbol)));
+    const results = await Promise.allSettled(ASSETS.map((asset) => fetchTicker(asset.symbol)));
     setMarket((m) => {
       let next = m;
       results.forEach((result, i) => {
@@ -170,7 +152,7 @@ export function useGame() {
       });
       return next;
     });
-  }, [apiKey]);
+  }, []);
 
   const grantPlayMoney = useCallback(() => {
     setWallet((w) => {
@@ -217,5 +199,5 @@ export function useGame() {
     setWallet((w) => ({ ...w, balance: w.balance + value }));
   }, []);
 
-  return { market, wallet, owned, apiKey, setApiKey, removeApiKey, refreshQuotes, grantPlayMoney, buyRobot, sellRobot };
+  return { market, wallet, owned, refreshQuotes, grantPlayMoney, buyRobot, sellRobot };
 }

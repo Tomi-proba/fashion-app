@@ -1,8 +1,8 @@
-export type AssetSymbol = 'AAPL' | 'KO' | 'TSLA' | 'XOM';
+export type AssetSymbol = 'BTCUSDT' | 'ETHUSDT' | 'SOLUSDT' | 'DOGEUSDT';
 
 export type StrategyId = 'trend' | 'meanReversion' | 'momentum' | 'grid';
 
-export type RiskLevel = 'alacsony' | 'közepes' | 'magas';
+export type RiskLevel = 'közepes' | 'magas';
 
 export interface AssetDef {
   symbol: AssetSymbol;
@@ -27,7 +27,7 @@ export interface RobotDef {
   price: number;
 }
 
-export type ConnectionStatus = 'no-key' | 'connecting' | 'open' | 'closed' | 'error';
+export type ConnectionStatus = 'connecting' | 'open' | 'closed' | 'error';
 
 export interface MarketState {
   histories: Record<AssetSymbol, number[]>;
