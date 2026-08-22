@@ -8,39 +8,30 @@ export const ASSETS: AssetDef[] = [
 ];
 
 // Keep at most this many recent trade points per symbol so localStorage and
-// moving-average windows stay bounded during a long-running session.
+// moving-average windows stay bounded during a long-running session. Nothing
+// anchors to an absolute index anymore (no purchases to track), so trimming
+// from the front is safe on its own.
 const MAX_HISTORY_LENGTH = 3000;
 
 export function createInitialMarket(): MarketState {
   const histories = {} as Record<AssetSymbol, number[]>;
-  const historyOffsets = {} as Record<AssetSymbol, number>;
   const lastTradeAt = {} as Record<AssetSymbol, number | null>;
   for (const asset of ASSETS) {
     histories[asset.symbol] = [];
-    historyOffsets[asset.symbol] = 0;
     lastTradeAt[asset.symbol] = null;
   }
-  return { histories, historyOffsets, lastTradeAt, connectionStatus: 'connecting', connectionError: null };
+  return { histories, lastTradeAt, connectionStatus: 'connecting', connectionError: null };
 }
 
-// Appends a real trade price for a symbol, trimming from the front (and
-// bumping the offset) once the cap is hit so absolute indices stay valid.
 export function appendTick(market: MarketState, symbol: AssetSymbol, price: number, atMs: number): MarketState {
   const histories = { ...market.histories };
-  const historyOffsets = { ...market.historyOffsets };
   const lastTradeAt = { ...market.lastTradeAt, [symbol]: atMs };
 
   const series = [...histories[symbol], price];
   if (series.length > MAX_HISTORY_LENGTH) {
-    const overflow = series.length - MAX_HISTORY_LENGTH;
-    series.splice(0, overflow);
-    historyOffsets[symbol] = historyOffsets[symbol] + overflow;
+    series.splice(0, series.length - MAX_HISTORY_LENGTH);
   }
   histories[symbol] = series;
 
-  return { ...market, histories, historyOffsets, lastTradeAt };
-}
-
-export function absoluteLength(market: MarketState, symbol: AssetSymbol): number {
-  return market.historyOffsets[symbol] + market.histories[symbol].length;
+  return { ...market, histories, lastTradeAt };
 }

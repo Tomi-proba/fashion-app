@@ -17,8 +17,6 @@ export function saveJSON<T>(key: string, value: T): void {
 }
 
 export const STORAGE_KEYS = {
-  market: 'rtapp_market_v1',
-  wallet: 'rtapp_wallet_v1',
-  owned: 'rtapp_owned_v1',
-  platform: 'rtapp_platform_v1',
+  market: 'rtapp_market_v2',
+  watches: 'rtapp_watches_v1',
 } as const;

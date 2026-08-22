@@ -1,14 +1,13 @@
 import { STRATEGIES } from '../lib/strategies';
-import { formatCredits } from '../lib/format';
 import type { RobotDef } from '../types';
 
 interface RobotCardProps {
   robot: RobotDef;
-  ownedCount: number;
+  watchCount: number;
   onConfigure: () => void;
 }
 
-export default function RobotCard({ robot, ownedCount, onConfigure }: RobotCardProps) {
+export default function RobotCard({ robot, watchCount, onConfigure }: RobotCardProps) {
   const strategy = STRATEGIES[robot.strategyId];
 
   return (
@@ -21,18 +20,14 @@ export default function RobotCard({ robot, ownedCount, onConfigure }: RobotCardP
       <p className="text-sm text-slate-600 dark:text-slate-300">{robot.description}</p>
 
       <div className="mt-auto flex items-center justify-between gap-2 pt-1">
-        <div className="text-sm font-semibold text-slate-900 dark:text-slate-100">
-          {formatCredits(robot.price)}
-          <span className="ml-1 text-xs font-normal text-slate-400">egyszeri</span>
-        </div>
-        {ownedCount > 0 && <span className="text-xs text-slate-400">{ownedCount}× megvéve</span>}
+        {watchCount > 0 ? <span className="text-xs text-slate-400">{watchCount} figyelő állítva</span> : <span />}
       </div>
 
       <button
         onClick={onConfigure}
         className="w-full rounded-lg bg-indigo-600 px-3 py-1.5 text-sm font-medium text-white transition-colors hover:bg-indigo-500"
       >
-        Beállítás és vásárlás
+        Figyelés beállítása
       </button>
     </div>
   );
