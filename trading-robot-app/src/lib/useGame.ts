@@ -4,7 +4,13 @@ import { ASSETS, appendTick, createInitialMarket } from './market';
 import { loadJSON, saveJSON, STORAGE_KEYS } from './storage';
 import type { AssetSymbol, MarketState, RiskLevel, Watch } from '../types';
 
-const FLUSH_INTERVAL_MS = 1000; // batch fast trade streams into at most 1 UI/storage update per second
+// Batch fast trade streams into one stored point every few seconds, averaging
+// every trade seen in that window rather than keeping only the last one. Raw
+// tick-by-tick prices bounce between bid/ask on every single trade — feeding
+// that directly into a short-window strategy (like mean-reversion's 20-point
+// z-score) makes its signal flap between every bucket on pure noise. Averaging
+// smooths that out into something closer to a real price bar.
+const FLUSH_INTERVAL_MS = 3000;
 const RECONNECT_BASE_MS = 2000;
 const RECONNECT_MAX_MS = 30000;
 
@@ -33,7 +39,7 @@ export function useGame() {
     let ws: WebSocket | null = null;
     let reconnectAttempt = 0;
     let reconnectTimer: ReturnType<typeof setTimeout> | null = null;
-    const pending = new Map<AssetSymbol, { price: number; atMs: number }>();
+    const pending = new Map<AssetSymbol, { sum: number; count: number; atMs: number }>();
 
     const flushTimer = setInterval(() => {
       if (pending.size === 0) return;
@@ -41,8 +47,8 @@ export function useGame() {
       pending.clear();
       setMarket((m) => {
         let next = m;
-        for (const [symbol, tick] of batch) {
-          next = appendTick(next, symbol, tick.price, tick.atMs);
+        for (const [symbol, agg] of batch) {
+          next = appendTick(next, symbol, agg.sum / agg.count, agg.atMs);
         }
         return next;
       });
@@ -64,9 +70,10 @@ export function useGame() {
         if (!active || typeof event.data !== 'string') return;
         const ticks = parseWsMessage(event.data);
         for (const tick of ticks) {
-          if (ASSETS.some((a) => a.symbol === tick.symbol)) {
-            pending.set(tick.symbol as AssetSymbol, { price: tick.price, atMs: tick.atMs });
-          }
+          if (!ASSETS.some((a) => a.symbol === tick.symbol)) continue;
+          const symbol = tick.symbol as AssetSymbol;
+          const existing = pending.get(symbol);
+          pending.set(symbol, existing ? { sum: existing.sum + tick.price, count: existing.count + 1, atMs: tick.atMs } : { sum: tick.price, count: 1, atMs: tick.atMs });
         }
       };
 

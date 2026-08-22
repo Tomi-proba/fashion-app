@@ -25,12 +25,33 @@ function toneFromFraction(fraction: number): SignalTone {
   return 'strong-sell';
 }
 
-// The strategy's recommended exposure (0..1) right now, on the eszköz's full
-// available live history — this is the actual "what would it do" signal, not
-// a backtest. Nem befektetési tanács: csak a szabály mechanikus kimenete.
+// How many trailing points to smooth over, and how much weight the newest one
+// gets (EMA). A z-score-style strategy (like mean-reversion) is scale-invariant
+// to noise in the underlying price — averaging the price itself barely helps,
+// because both the deviation and the window's own stdev shrink together. What
+// actually stops the recommendation flapping bucket-to-bucket is smoothing the
+// *signal* over a short run of recent evaluations, so one noisy tick can't flip
+// the label on its own.
+const SMOOTH_WINDOW = 15;
+const EMA_ALPHA = 0.22;
+
+// The strategy's recommended exposure (0..1) right now, smoothed over the last
+// few points of the eszköz's live history — this is the actual "what would it
+// do" signal, not a backtest. Nem befektetési tanács: csak a szabály mechanikus
+// (időben simított) kimenete.
 export function computeSignal(strategyId: StrategyId, assetSymbol: AssetSymbol, riskLevel: RiskLevel, market: MarketState): Signal {
   const history = market.histories[assetSymbol];
-  const fraction = STRATEGIES[strategyId].targetFraction(history, riskLevel);
-  const tone = toneFromFraction(fraction);
-  return { fraction, tone, label: TONE_LABEL[tone] };
+  const strategy = STRATEGIES[strategyId];
+
+  const start = Math.max(0, history.length - SMOOTH_WINDOW);
+  let smoothed = 0.5;
+  let first = true;
+  for (let i = start; i < history.length; i++) {
+    const raw = strategy.targetFraction(history.slice(0, i + 1), riskLevel);
+    smoothed = first ? raw : EMA_ALPHA * raw + (1 - EMA_ALPHA) * smoothed;
+    first = false;
+  }
+
+  const tone = toneFromFraction(smoothed);
+  return { fraction: smoothed, tone, label: TONE_LABEL[tone] };
 }
