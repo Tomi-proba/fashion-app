@@ -21,27 +21,33 @@ interface RobotConfigModalProps {
   market: MarketState;
   wallet: WalletState;
   initialAsset?: AssetSymbol;
-  onBuy: (assetSymbol: AssetSymbol, riskLevel: RiskLevel, capital: number) => BuyResult;
+  onBuy: (assetSymbol: AssetSymbol, riskLevel: RiskLevel, capital: number) => Promise<BuyResult>;
   onClose: () => void;
 }
 
 export default function RobotConfigModal({ robot, market, wallet, initialAsset, onBuy, onClose }: RobotConfigModalProps) {
   const [asset, setAsset] = useState<AssetSymbol>(initialAsset ?? ASSETS[0].symbol);
   const [risk, setRisk] = useState<RiskLevel>('közepes');
-  const [capitalStr, setCapitalStr] = useState(() => String(Math.min(500, Math.max(MIN_ALLOCATION, Math.floor(wallet.balance)))));
+  const remainingAfterFee = Math.max(0, wallet.balance - robot.price);
+  const [capitalStr, setCapitalStr] = useState(() => String(Math.min(500, Math.max(MIN_ALLOCATION, Math.floor(remainingAfterFee)))));
   const [error, setError] = useState<string | null>(null);
+  const [submitting, setSubmitting] = useState(false);
 
   const strategy = STRATEGIES[robot.strategyId];
   const assetDef = ASSETS.find((a) => a.symbol === asset)!;
   const { equity, stats } = useMemo(() => backtestCombo(robot.strategyId, asset, risk, market), [robot.strategyId, asset, risk, market]);
 
   const capital = Number(capitalStr.replace(',', '.'));
-  const capitalValid = Number.isFinite(capital) && capital >= MIN_ALLOCATION && capital <= wallet.balance;
+  const totalCost = Number.isFinite(capital) ? robot.price + capital : NaN;
+  const capitalValid = Number.isFinite(capital) && capital >= MIN_ALLOCATION && totalCost <= wallet.balance;
 
-  const setPct = (pct: number) => setCapitalStr(String(Math.max(MIN_ALLOCATION, Math.floor(wallet.balance * pct))));
+  const setPct = (pct: number) => setCapitalStr(String(Math.max(MIN_ALLOCATION, Math.floor(remainingAfterFee * pct))));
 
-  const handleBuy = () => {
-    const result = onBuy(asset, risk, capital);
+  const handleBuy = async () => {
+    setSubmitting(true);
+    setError(null);
+    const result = await onBuy(asset, risk, capital);
+    setSubmitting(false);
     if (!result.ok) setError(result.message ?? 'A vásárlás nem sikerült.');
   };
 
@@ -112,9 +118,16 @@ export default function RobotConfigModal({ robot, market, wallet, initialAsset, 
         </div>
       </div>
 
+      <div className="mb-4 rounded-lg border border-slate-200 p-3 dark:border-slate-700">
+        <div className="flex items-center justify-between text-sm">
+          <span className="text-slate-500 dark:text-slate-400">Robot ára (egyszeri, nem visszatéríthető)</span>
+          <span className="font-medium text-slate-800 dark:text-slate-200">{formatCredits(robot.price)}</span>
+        </div>
+      </div>
+
       <div className="mb-4">
         <div className="mb-1.5 text-xs font-semibold uppercase tracking-wide text-slate-500 dark:text-slate-400">
-          Befektetett tőke ({assetDef.name})
+          Feltöltés — befektetett tőke ({assetDef.name})
         </div>
         <div className="flex flex-wrap items-center gap-2">
           <input
@@ -129,15 +142,18 @@ export default function RobotConfigModal({ robot, market, wallet, initialAsset, 
           <button onClick={() => setPct(0.5)} className="rounded-lg border border-slate-300 px-2.5 py-1 text-xs text-slate-600 hover:bg-slate-100 dark:border-slate-700 dark:text-slate-300 dark:hover:bg-slate-800">50%</button>
           <button onClick={() => setPct(1)} className="rounded-lg border border-slate-300 px-2.5 py-1 text-xs text-slate-600 hover:bg-slate-100 dark:border-slate-700 dark:text-slate-300 dark:hover:bg-slate-800">100%</button>
         </div>
-        <p className="mt-1 text-xs text-slate-400">Egyenleged: {formatCredits(wallet.balance)} · minimum {formatCredits(MIN_ALLOCATION)}</p>
+        <p className="mt-1 text-xs text-slate-400">
+          Egyenleged: {formatCredits(wallet.balance)} · a robot ára levonása után maradó: {formatCredits(remainingAfterFee)} · minimum {formatCredits(MIN_ALLOCATION)}
+        </p>
       </div>
 
       <div className="mb-4 rounded-lg border border-amber-200 bg-amber-50 p-3 text-xs text-amber-800 dark:border-amber-900/50 dark:bg-amber-900/20 dark:text-amber-300">
         A fenti diagram a stratégiát futtatja le a választott eszköz és kockázati szint mellett, a {assetDef.name}{' '}
         valós, élő árfolyamán, azóta, hogy ez a böngésző csatlakozott az adatfolyamhoz — nem hosszú távú, valós
         kereskedési eredmény, és nem garantálja, hogy a robot a jövőben (akár csak a befektetett összeg erejéig)
-        nyereséges lesz. Kereskedési díj minden ügyletnél levonásra kerül. A beállítást a vásárlás után is csak
-        eladással (és új robot vásárlásával) tudod megváltoztatni.
+        nyereséges lesz. Kereskedési díj minden ügyletnél levonásra kerül. A robot ára nem jár vissza eladáskor —
+        csak a feltöltött tőke aktuális értékét kapod meg. A beállítást a vásárlás után is csak eladással (és új
+        robot vásárlásával) tudod megváltoztatni.
       </div>
 
       {error && (
@@ -145,17 +161,20 @@ export default function RobotConfigModal({ robot, market, wallet, initialAsset, 
       )}
 
       <div className="flex items-center justify-between gap-3">
-        <div className="text-lg font-semibold text-slate-900 dark:text-slate-100">{Number.isFinite(capital) ? formatCredits(capital) : '—'}</div>
+        <div className="text-lg font-semibold text-slate-900 dark:text-slate-100">
+          {Number.isFinite(totalCost) ? formatCredits(totalCost) : '—'}
+          <span className="ml-1 text-xs font-normal text-slate-400">összesen</span>
+        </div>
         <div className="flex gap-2">
-          <button onClick={onClose} className="rounded-lg border border-slate-300 px-4 py-2 text-sm font-medium text-slate-600 dark:border-slate-700 dark:text-slate-300">
+          <button onClick={onClose} disabled={submitting} className="rounded-lg border border-slate-300 px-4 py-2 text-sm font-medium text-slate-600 disabled:opacity-40 dark:border-slate-700 dark:text-slate-300">
             Mégse
           </button>
           <button
             onClick={handleBuy}
-            disabled={!capitalValid}
+            disabled={!capitalValid || submitting}
             className="rounded-lg bg-indigo-600 px-4 py-2 text-sm font-medium text-white hover:bg-indigo-500 disabled:cursor-not-allowed disabled:opacity-40"
           >
-            Megvétel játékpénzért
+            {submitting ? 'Feldolgozás…' : 'Megvétel játékpénzért'}
           </button>
         </div>
       </div>

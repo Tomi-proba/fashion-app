@@ -3,9 +3,11 @@ import { getRobot } from '../data/robots';
 import { fetchTicker, WS_URL, subscribeMessage, parseWsMessage, BinanceError } from './binance';
 import { getLiveEquityCurve } from './ownedRobots';
 import { ASSETS, appendTick, absoluteLength, createInitialMarket } from './market';
+import { purchaseRobotFee, depositCapital } from './payments';
+import { createInitialPlatformState } from './platform';
 import { loadJSON, saveJSON, STORAGE_KEYS } from './storage';
 import { canClaimGrant, createInitialWallet, GRANT_AMOUNT } from './wallet';
-import type { AssetSymbol, MarketState, OwnedRobot, RiskLevel, WalletState } from '../types';
+import type { AssetSymbol, MarketState, OwnedRobot, PlatformState, RiskLevel, WalletState } from '../types';
 
 const FLUSH_INTERVAL_MS = 1000; // batch fast trade streams into at most 1 UI/storage update per second
 const RECONNECT_BASE_MS = 2000;
@@ -26,6 +28,10 @@ function loadOrCreateOwned(): OwnedRobot[] {
   return loadJSON<OwnedRobot[]>(STORAGE_KEYS.owned) ?? [];
 }
 
+function loadOrCreatePlatform(): PlatformState {
+  return loadJSON<PlatformState>(STORAGE_KEYS.platform) ?? createInitialPlatformState();
+}
+
 export interface BuyResult {
   ok: boolean;
   message?: string;
@@ -35,6 +41,7 @@ export function useGame() {
   const [market, setMarket] = useState<MarketState>(loadOrCreateMarket);
   const [wallet, setWallet] = useState<WalletState>(loadOrCreateWallet);
   const [owned, setOwned] = useState<OwnedRobot[]>(loadOrCreateOwned);
+  const [platform, setPlatform] = useState<PlatformState>(loadOrCreatePlatform);
 
   const marketRef = useRef(market);
   marketRef.current = market;
@@ -46,6 +53,7 @@ export function useGame() {
   useEffect(() => saveJSON(STORAGE_KEYS.market, market), [market]);
   useEffect(() => saveJSON(STORAGE_KEYS.wallet, wallet), [wallet]);
   useEffect(() => saveJSON(STORAGE_KEYS.owned, owned), [owned]);
+  useEffect(() => saveJSON(STORAGE_KEYS.platform, platform), [platform]);
 
   // Live Binance connection: public REST bootstrap + public WebSocket trade stream, no API
   // key or account involved. Batched into market state at most once a second so a busy pair
@@ -162,20 +170,29 @@ export function useGame() {
     });
   }, []);
 
-  const buyRobot = useCallback((robotId: string, assetSymbol: AssetSymbol, riskLevel: RiskLevel, capital: number): BuyResult => {
+  const buyRobot = useCallback(async (robotId: string, assetSymbol: AssetSymbol, riskLevel: RiskLevel, capital: number): Promise<BuyResult> => {
     const robot = getRobot(robotId);
     if (!robot) return { ok: false, message: 'Ismeretlen robot.' };
     if (!Number.isFinite(capital) || capital < MIN_ALLOCATION) {
       return { ok: false, message: `A minimum befektetett tőke ${MIN_ALLOCATION} kredit.` };
     }
-    if (walletRef.current.balance < capital) {
-      return { ok: false, message: 'Nincs elég játékegyenleged ehhez az összeghez.' };
+    const totalCost = robot.price + capital;
+    if (walletRef.current.balance < totalCost) {
+      return { ok: false, message: 'Nincs elég játékegyenleged (robot ára + feltöltés) ehhez az összeghez.' };
     }
     const m = marketRef.current;
     const totalTicks = absoluteLength(m, assetSymbol);
     if (totalTicks === 0) {
       return { ok: false, message: 'Még nem érkezett árfolyamadat ehhez az eszközhöz — várj egy pillanatot.' };
     }
+
+    // Two separate charges, exactly as they'd be two separate real payments later:
+    // the one-time robot fee (→ platform revenue) and the trading capital top-up.
+    const feeResult = await purchaseRobotFee(robot.price);
+    if (!feeResult.ok) return { ok: false, message: feeResult.message ?? 'A robot díjának terhelése nem sikerült.' };
+    const depositResult = await depositCapital(capital);
+    if (!depositResult.ok) return { ok: false, message: depositResult.message ?? 'A feltöltés nem sikerült.' };
+
     const purchasedAtIndex = totalTicks - 1;
     const newOwned: OwnedRobot = {
       instanceId: crypto.randomUUID(),
@@ -187,7 +204,8 @@ export function useGame() {
       costBasis: capital,
       sold: false,
     };
-    setWallet((w) => ({ ...w, balance: w.balance - capital }));
+    setWallet((w) => ({ ...w, balance: w.balance - totalCost }));
+    setPlatform((p) => ({ ...p, totalRevenue: p.totalRevenue + robot.price }));
     setOwned((list) => [...list, newOwned]);
     return { ok: true };
   }, []);
@@ -204,5 +222,5 @@ export function useGame() {
     setWallet((w) => ({ ...w, balance: w.balance + value }));
   }, []);
 
-  return { market, wallet, owned, refreshQuotes, grantPlayMoney, buyRobot, sellRobot };
+  return { market, wallet, owned, platform, refreshQuotes, grantPlayMoney, buyRobot, sellRobot };
 }

@@ -2,13 +2,14 @@ import { ASSETS } from '../lib/market';
 import { formatCredits, formatPct } from '../lib/format';
 import { getOwnedStats } from '../lib/ownedRobots';
 import SparklineChart from './SparklineChart';
-import type { MarketState, OwnedRobot, WalletState } from '../types';
+import type { MarketState, OwnedRobot, PlatformState, WalletState } from '../types';
 import type { Tab } from './Header';
 
 interface DashboardProps {
   market: MarketState;
   wallet: WalletState;
   owned: OwnedRobot[];
+  platform: PlatformState;
   onRefresh: () => void;
   onNavigate: (tab: Tab) => void;
 }
@@ -24,7 +25,7 @@ function timeAgo(ms: number | null): string {
   return `${diffH} órája`;
 }
 
-export default function Dashboard({ market, wallet, owned, onRefresh, onNavigate }: DashboardProps) {
+export default function Dashboard({ market, wallet, owned, platform, onRefresh, onNavigate }: DashboardProps) {
   const active = owned.filter((o) => !o.sold);
   const robotsValue = active.reduce((sum, o) => sum + getOwnedStats(o, market).currentValue, 0);
   const costBasisSum = active.reduce((sum, o) => sum + o.costBasis, 0);
@@ -53,6 +54,18 @@ export default function Dashboard({ market, wallet, owned, onRefresh, onNavigate
             {formatCredits(robotsValue)} <span className="text-base">({formatPct(overallRoiPct)})</span>
           </div>
         </div>
+      </div>
+
+      <div className="mb-6 rounded-2xl border border-amber-200 bg-amber-50 p-4 dark:border-amber-900/50 dark:bg-amber-900/20">
+        <div className="text-xs font-semibold uppercase tracking-wide text-amber-700 dark:text-amber-400">Üzemeltetői nézet (demó)</div>
+        <div className="mt-1 flex items-baseline gap-2">
+          <span className="text-2xl font-semibold text-amber-900 dark:text-amber-200">{formatCredits(platform.totalRevenue)}</span>
+          <span className="text-xs text-amber-700 dark:text-amber-400">összesített bevétel a robot-vásárlási díjakból</span>
+        </div>
+        <p className="mt-1 text-xs text-amber-700 dark:text-amber-400">
+          Ez az az összeg, ami egy valós termékben az üzemeltetőhöz kerülne minden robot megvásárlásakor — itt
+          még játékpénzben, csak szemléltetésül.
+        </p>
       </div>
 
       <div className="mb-6 flex flex-wrap items-center gap-2">

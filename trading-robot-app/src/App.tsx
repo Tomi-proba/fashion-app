@@ -9,7 +9,7 @@ import DataSourceInfo from './components/DataSourceInfo';
 import { useGame } from './lib/useGame';
 
 export default function App() {
-  const { market, wallet, owned, refreshQuotes, grantPlayMoney, buyRobot, sellRobot } = useGame();
+  const { market, wallet, owned, platform, refreshQuotes, grantPlayMoney, buyRobot, sellRobot } = useGame();
   const [tab, setTab] = useState<Tab>('dashboard');
 
   return (
@@ -18,7 +18,7 @@ export default function App() {
       <Header wallet={wallet} connectionStatus={market.connectionStatus} activeTab={tab} onTabChange={setTab} onGrant={grantPlayMoney} />
       <main className="mx-auto max-w-6xl px-4 py-6">
         {tab === 'dashboard' && (
-          <Dashboard market={market} wallet={wallet} owned={owned} onRefresh={refreshQuotes} onNavigate={setTab} />
+          <Dashboard market={market} wallet={wallet} owned={owned} platform={platform} onRefresh={refreshQuotes} onNavigate={setTab} />
         )}
         {tab === 'marketplace' && <Marketplace market={market} wallet={wallet} owned={owned} onBuy={buyRobot} />}
         {tab === 'myRobots' && <MyRobots market={market} owned={owned} onSell={sellRobot} />}

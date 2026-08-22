@@ -18,14 +18,17 @@ export interface StrategyDef {
   targetFraction: (history: number[], risk: RiskLevel) => number;
 }
 
-// A robot "type" — a strategy you can configure and buy. It has no fixed
-// asset, risk level, or price: those are chosen once, together, at purchase.
+// A robot "type" — a strategy you can configure and buy. Asset and risk level
+// are chosen at purchase; `price` is the fixed, one-time, non-refundable fee
+// for the robot itself (separate from the trading capital you top it up
+// with) — in the real product this is the operator's revenue.
 export interface RobotDef {
   id: string;
   name: string;
   tagline: string;
   description: string;
   strategyId: StrategyId;
+  price: number;
 }
 
 export type ConnectionStatus = 'connecting' | 'open' | 'closed' | 'error';
@@ -44,6 +47,14 @@ export interface WalletState {
   balance: number;
   totalGranted: number;
   lastGrantAt: number | null;
+}
+
+// The operator's (your) side of the ledger — accumulates the one-time robot
+// fees, kept separate from any single user's wallet. In this play-money demo
+// it's just a number; going live, this is what a real payment provider would
+// actually settle into your account (see lib/payments.ts).
+export interface PlatformState {
+  totalRevenue: number;
 }
 
 export interface OwnedRobot {

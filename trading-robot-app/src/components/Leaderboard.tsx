@@ -10,7 +10,7 @@ import type { BuyResult } from '../lib/useGame';
 interface LeaderboardProps {
   market: MarketState;
   wallet: WalletState;
-  onBuy: (robotId: string, assetSymbol: AssetSymbol, riskLevel: RiskLevel, capital: number) => BuyResult;
+  onBuy: (robotId: string, assetSymbol: AssetSymbol, riskLevel: RiskLevel, capital: number) => Promise<BuyResult>;
 }
 
 export default function Leaderboard({ market, wallet, onBuy }: LeaderboardProps) {
@@ -21,9 +21,9 @@ export default function Leaderboard({ market, wallet, onBuy }: LeaderboardProps)
     ASSETS.map((asset) => ({ robot, asset, ...backtestCombo(robot.strategyId, asset.symbol, 'közepes', market) })),
   ).sort((a, b) => b.stats.roiPct - a.stats.roiPct);
 
-  const handleBuy = (assetSymbol: AssetSymbol, riskLevel: RiskLevel, capital: number): BuyResult => {
+  const handleBuy = async (assetSymbol: AssetSymbol, riskLevel: RiskLevel, capital: number): Promise<BuyResult> => {
     if (!configRobotId) return { ok: false, message: 'Ismeretlen robot.' };
-    const result = onBuy(configRobotId, assetSymbol, riskLevel, capital);
+    const result = await onBuy(configRobotId, assetSymbol, riskLevel, capital);
     if (result.ok) setConfigRobotId(null);
     return result;
   };

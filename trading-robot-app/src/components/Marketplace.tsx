@@ -9,15 +9,15 @@ interface MarketplaceProps {
   market: MarketState;
   wallet: WalletState;
   owned: OwnedRobot[];
-  onBuy: (robotId: string, assetSymbol: AssetSymbol, riskLevel: RiskLevel, capital: number) => BuyResult;
+  onBuy: (robotId: string, assetSymbol: AssetSymbol, riskLevel: RiskLevel, capital: number) => Promise<BuyResult>;
 }
 
 export default function Marketplace({ market, wallet, owned, onBuy }: MarketplaceProps) {
   const [configRobotId, setConfigRobotId] = useState<string | null>(null);
 
-  const handleBuy = (assetSymbol: AssetSymbol, riskLevel: RiskLevel, capital: number): BuyResult => {
+  const handleBuy = async (assetSymbol: AssetSymbol, riskLevel: RiskLevel, capital: number): Promise<BuyResult> => {
     if (!configRobotId) return { ok: false, message: 'Ismeretlen robot.' };
-    const result = onBuy(configRobotId, assetSymbol, riskLevel, capital);
+    const result = await onBuy(configRobotId, assetSymbol, riskLevel, capital);
     if (result.ok) setConfigRobotId(null);
     return result;
   };

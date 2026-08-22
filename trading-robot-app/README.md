@@ -36,14 +36,35 @@ is. Az app kizárólag árfolyamot olvas, semmilyen fiókot, kereskedési enged�
 szabályzat (CSP) blokkol minden külső hálózati hívást, így az élő Binance-kapcsolat ott **nem** fog működni —
 csak akkor, ha ténylegesen futtatod az appot (`npm run dev`, vagy saját hosting).
 
+## Két külön "pénzmozgás" — robot ára vs. befektetett tőke
+
+Vásárláskor két, egymástól elkülönített összeg mozog:
+
+- **Robot ára** (fix, stratégiánként — pl. 500 kredit) — egyszeri, nem visszatéríthető díj. Egy valós termékben
+  ez lenne az üzemeltető bevétele; a demóban egy külön "platform revenue" számlálóba kerül (`src/lib/platform.ts`),
+  amit az Áttekintés fülön, az "Üzemeltetői nézet" panelen látsz.
+- **Befektetett tőke** (a te választásod, minimum 50 kredit) — ez a robot tényleges kereskedési tőkéje, ez adja
+  a `OwnedRobot.costBasis`-t, és eladáskor (a robot árától függetlenül) ennek az aktuális értékét kapod vissza.
+
+Mindkét összeg egy közös helyen, `src/lib/payments.ts`-ben megy át (`purchaseRobotFee`, `depositCapital`) —
+ez a kijelölt csereszabatos pont, ha valaha valós fizetésre állnátok át: a két függvény törzsét kellene lecserélni
+egy valós fizetési szolgáltató (pl. Stripe) hívására, ugyanazzal a `PaymentResult` visszatérési formával, és
+minden hívó (`src/lib/useGame.ts`) változatlanul működne tovább. Fontos: egy **valós** verzió már nem lehetne
+tisztán kliensoldali — a fizetés jóváhagyásához és az egyenlegek (üzemeltetői bevétel, felhasználói tőke)
+biztonságos tárolásához backend kellene, localStorage helyett. És — ahogy korábban is jeleztem — a valós pénzes
+verzió elindítása pénzügyi szolgáltatói engedélyt (Magyarországon MNB) és KYC/AML-folyamatot igényelne, amit ez
+a kód nem old meg és nem vált ki.
+
 ## Funkciók
 
-- **Piactér** — 4 robot-stratégia (trendkövető, átlaghoz visszahúzó, momentum, rácsstratégia). Mindegyiket egy
-  lépésben állítod be és veszed meg: választasz eszközt (BTC/ETH/SOL/DOGE), kockázati szintet (alacsony/közepes/
-  magas — ez ténylegesen befolyásolja, mekkora kilengéssel kereskedik) és befektetett tőkét. A vásárlás egyszeri
-  — utána a beállítást már nem kell (és nem is lehet) újra megvenni, csak eladással lehet lezárni a pozíciót.
+- **Piactér** — 4 robot-stratégia (trendkövető, átlaghoz visszahúzó, momentum, rácsstratégia). Mindegyiknek fix
+  ára van (`RobotDef.price`), és egy lépésben állítod be hozzá: eszköz (BTC/ETH/SOL/DOGE), kockázati szint
+  (alacsony/közepes/magas — ez ténylegesen befolyásolja, mekkora kilengéssel kereskedik) és befektetett tőke. A
+  vásárlás egyszeri — utána a beállítást már nem kell (és nem is lehet) újra megvenni, csak eladással lehet
+  lezárni a pozíciót.
 - **Robotjaim** — a megvásárolt (konfigurált) robot-példányok élő, valós árfolyamon futó teljesítménye, "hány
-  százalék térült meg a vételárból" mutatóval, eladási lehetőséggel.
+  százalék térült meg a vételárból" mutatóval (ez a befektetett tőkéhez, nem a robot árához viszonyít), eladási
+  lehetőséggel.
 - **Ranglista** — az összes stratégia × eszköz kombináció mai hozama közepes kockázaton, rangsorolva — ez segít
   eldönteni, mi teljesített ma a legjobban, majd egy gombbal meg is nyitja a beállító/vásárló ablakot.
 - **Áttekintés** — teljes vagyon, egyenleg, a figyelt kriptovaluták élő árfolyama és utolsó kereskedésük ideje.
