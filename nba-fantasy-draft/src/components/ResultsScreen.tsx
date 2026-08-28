@@ -41,7 +41,7 @@ export default function ResultsScreen({ state }: { state: DraftState }) {
       </button>
 
       {weeklyRanked && (
-        <div className="overflow-hidden rounded-2xl border border-slate-200 dark:border-slate-800">
+        <div className="overflow-x-auto rounded-2xl border border-slate-200 dark:border-slate-800">
           <table className="w-full text-sm">
             <thead className="bg-slate-50 text-left text-xs uppercase text-slate-500 dark:bg-slate-800 dark:text-slate-400">
               <tr>
