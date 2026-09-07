@@ -1,27 +1,30 @@
-import type { EdgeMode, GraphEdge } from '../types';
+import type { TransportMode } from '../types';
 
-// Sematikus, de nem önkényes paraméterek: a gyaloglás ingyenes és lassú, a
-// tömegközlekedés fix viteldíjas és közepesen gyors, az autó/híd üzemanyagköltség-
-// arányos és városi forgalomra jellemző sebességű. Nem valós, élő BKK-menetrend
-// vagy forgalmi adat — csak arra elég, hogy a három útvonaltípus valóban
-// eltérő döntéseket hozzon.
-const MODE_PARAMS: Record<EdgeMode, { speedKmh: number; hufPerKm: number; flatFareHuf: number }> = {
-  walk: { speedKmh: 4.5, hufPerKm: 0, flatFareHuf: 0 },
-  transit: { speedKmh: 22, hufPerKm: 0, flatFareHuf: 450 },
-  car: { speedKmh: 20, hufPerKm: 55, flatFareHuf: 0 },
+// Az OSRM valós útvonalat és menetidőt ad vissza; a költséget ebből becsüljük.
+// Gyaloglás és kerékpár ingyenes, az autónál egy átlagos üzemanyag-fogyasztásból
+// és forint/liter árból számolt Ft/km szorzót használunk — nem valós élő
+// üzemanyagár, csak egy ésszerű becslés.
+const HUF_PER_KM_CAR = 55;
+
+export function estimateCostHuf(mode: TransportMode, distanceKm: number): number {
+  if (mode === 'car') return distanceKm * HUF_PER_KM_CAR;
+  return 0;
+}
+
+export const MODE_LABEL: Record<TransportMode, string> = {
+  car: 'autó',
+  bike: 'kerékpár',
+  foot: 'gyaloglás',
 };
 
-export function edgeTimeMin(edge: GraphEdge): number {
-  return (edge.distanceKm / MODE_PARAMS[edge.mode].speedKmh) * 60;
-}
+export const MODE_ICON: Record<TransportMode, string> = {
+  car: '🚗',
+  bike: '🚲',
+  foot: '🚶',
+};
 
-export function edgeCostHuf(edge: GraphEdge): number {
-  const params = MODE_PARAMS[edge.mode];
-  return params.flatFareHuf + edge.distanceKm * params.hufPerKm;
-}
-
-export const MODE_LABEL: Record<EdgeMode, string> = {
-  walk: 'gyaloglás',
-  transit: 'tömegközlekedés',
-  car: 'autó',
+export const MODE_COLOR: Record<TransportMode, string> = {
+  car: '#d97706',
+  bike: '#059669',
+  foot: '#2563eb',
 };

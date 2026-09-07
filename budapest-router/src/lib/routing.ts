@@ -1,92 +1,58 @@
-import { EDGES, NODES } from '../data/graph';
-import { edgeCostHuf, edgeTimeMin } from './modeParams';
-import type { Criterion, GraphEdge, Route, RouteStep } from '../types';
+import { estimateCostHuf } from './modeParams';
+import type { LatLng, ModeRouteResult, TransportMode } from '../types';
 
-interface AdjacencyEntry {
-  to: string;
-  edge: GraphEdge;
+// Az OSRM hivatalos publikus demószervere csak autós ("driving") profilt szolgál
+// ki; gyalogos és kerékpáros profilhoz a FOSSGIS/OpenStreetMap.de közösségi
+// tükrét használjuk — mindkettő ingyenes, kulcs nélküli, nyilvános OSRM API.
+const OSRM_ENDPOINT: Record<TransportMode, { base: string; profile: string }> = {
+  car: { base: 'https://router.project-osrm.org', profile: 'driving' },
+  bike: { base: 'https://routing.openstreetmap.de/routed-bike', profile: 'bike' },
+  foot: { base: 'https://routing.openstreetmap.de/routed-foot', profile: 'foot' },
+};
+
+interface OsrmRoute {
+  distance: number;
+  duration: number;
+  geometry: { coordinates: [number, number][] };
 }
 
-// Roads/bridges/tram lines all run both ways, so every edge is usable in
-// either direction.
-function buildAdjacency(): Map<string, AdjacencyEntry[]> {
-  const adjacency = new Map<string, AdjacencyEntry[]>();
-  for (const node of NODES) adjacency.set(node.id, []);
-  for (const edge of EDGES) {
-    adjacency.get(edge.from)?.push({ to: edge.to, edge });
-    adjacency.get(edge.to)?.push({ to: edge.from, edge });
-  }
-  return adjacency;
+interface OsrmResponse {
+  code: string;
+  routes?: OsrmRoute[];
+  message?: string;
 }
 
-const ADJACENCY = buildAdjacency();
+async function fetchOneRoute(mode: TransportMode, from: LatLng, to: LatLng): Promise<ModeRouteResult> {
+  const { base, profile } = OSRM_ENDPOINT[mode];
+  const coords = `${from.lng},${from.lat};${to.lng},${to.lat}`;
+  const url = `${base}/route/v1/${profile}/${coords}?overview=full&geometries=geojson`;
 
-function edgeWeight(edge: GraphEdge, criterion: Criterion): number {
-  if (criterion === 'distance') return edge.distanceKm;
-  if (criterion === 'time') return edgeTimeMin(edge);
-  return edgeCostHuf(edge);
-}
-
-// Plain Dijkstra over a ~27-node graph — small enough that a simple O(n^2)
-// scan for the next closest node is plenty fast, no priority queue needed.
-export function findRoute(startId: string, endId: string, criterion: Criterion): Route | null {
-  const dist = new Map<string, number>();
-  const prevEdge = new Map<string, AdjacencyEntry>();
-  const visited = new Set<string>();
-
-  for (const node of NODES) dist.set(node.id, Infinity);
-  dist.set(startId, 0);
-
-  while (visited.size < NODES.length) {
-    let current: string | null = null;
-    let currentDist = Infinity;
-    for (const node of NODES) {
-      if (visited.has(node.id)) continue;
-      const d = dist.get(node.id) ?? Infinity;
-      if (d < currentDist) {
-        currentDist = d;
-        current = node.id;
-      }
+  try {
+    const response = await fetch(url);
+    if (!response.ok) return { mode, error: `Útvonalkeresés sikertelen (${response.status}).` };
+    const data = (await response.json()) as OsrmResponse;
+    if (data.code !== 'Ok' || !data.routes || data.routes.length === 0) {
+      return { mode, error: data.message ?? 'Nincs útvonal a két pont között.' };
     }
-    if (current === null || currentDist === Infinity) break;
-    if (current === endId) break;
-    visited.add(current);
-
-    for (const { to, edge } of ADJACENCY.get(current) ?? []) {
-      if (visited.has(to)) continue;
-      const candidate = currentDist + edgeWeight(edge, criterion);
-      if (candidate < (dist.get(to) ?? Infinity)) {
-        dist.set(to, candidate);
-        prevEdge.set(to, { to: current, edge });
-      }
-    }
+    const best = data.routes[0];
+    const distanceKm = best.distance / 1000;
+    const positions: LatLng[] = best.geometry.coordinates.map(([lng, lat]) => ({ lat, lng }));
+    return {
+      mode,
+      positions,
+      distanceKm,
+      timeMin: best.duration / 60,
+      costHuf: estimateCostHuf(mode, distanceKm),
+    };
+  } catch {
+    return { mode, error: 'Nem sikerült elérni az útvonaltervező szolgáltatást.' };
   }
-
-  if ((dist.get(endId) ?? Infinity) === Infinity) return null;
-
-  // Walk the predecessor chain back to the start.
-  const nodeIds: string[] = [endId];
-  const steps: RouteStep[] = [];
-  let cursor = endId;
-  while (cursor !== startId) {
-    const step = prevEdge.get(cursor);
-    if (!step) return null;
-    steps.unshift({ edge: step.edge, timeMin: edgeTimeMin(step.edge), costHuf: edgeCostHuf(step.edge) });
-    cursor = step.to;
-    nodeIds.unshift(cursor);
-  }
-
-  const totalDistanceKm = steps.reduce((sum, s) => sum + s.edge.distanceKm, 0);
-  const totalTimeMin = steps.reduce((sum, s) => sum + s.timeMin, 0);
-  const totalCostHuf = steps.reduce((sum, s) => sum + s.costHuf, 0);
-
-  return { criterion, nodeIds, steps, totalDistanceKm, totalTimeMin, totalCostHuf };
 }
 
-export function findAllRoutes(startId: string, endId: string): Record<Criterion, Route | null> {
-  return {
-    distance: findRoute(startId, endId, 'distance'),
-    time: findRoute(startId, endId, 'time'),
-    cost: findRoute(startId, endId, 'cost'),
-  };
+export async function findRoutes(from: LatLng, to: LatLng): Promise<ModeRouteResult[]> {
+  return Promise.all((['car', 'bike', 'foot'] as TransportMode[]).map((mode) => fetchOneRoute(mode, from, to)));
+}
+
+export function isRouteError(result: ModeRouteResult): result is Extract<ModeRouteResult, { error: string }> {
+  return 'error' in result;
 }

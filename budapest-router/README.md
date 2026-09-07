@@ -1,39 +1,48 @@
 # Budapest Útvonaltervező
 
-Kattintható térkép Budapestről: kiválasztasz egy indulási és egy célpontot a valós nevezetességek/csomópontok
-közül, és az app egyszerre mutatja a **legrövidebb** (táv), **leggyorsabb** (idő) és **legtakarékosabb**
-(költség) útvonalat — mindhármat valódi legrövidebb-út kereséssel kiszámolva, nem csak egyet.
+Valódi, interaktív térkép Budapestről: beírod, honnan hova mész (nem kell kattintgatni fix pontok közt), és az
+app három közlekedési módra — autó, kerékpár, gyaloglás — valódi útvonalat számol a tényleges utcahálózaton,
+majd megmutatja, melyik a **legrövidebb**, a **leggyorsabb** és a **legtakarékosabb**.
 
-## Miért sematikus a térkép?
+## Milyen adatforrásokat használ?
 
-Nincs valódi GPS-koordináta vagy térképszolgáltatás mögötte (az nem ingyenes/kulcs nélküli útvonaltervezésre
-nem igazán elérhető) — helyette egy kézzel megrajzolt gráf van 27 valós budapesti csomóponttal (Széll Kálmán
-tér, Nyugati/Keleti pályaudvar, Deák Ferenc tér, hidak stb.), amelyeket kb. 50 valósághű távolságú él köt
-össze, Buda és Pest oldalán elrendezve, a Dunával középen. A hangsúly az útvonalválasztás logikáján van, nem
-egy pixelpontos térképen.
+Mindhárom ingyenes, kulcs nélküli, publikus szolgáltatás — nincs backend, nincs regisztráció:
+
+- **Térkép** — valódi OpenStreetMap csempék (`tile.openstreetmap.org`), Leaflet segítségével megjelenítve.
+- **Helykeresés** — a beírt cím/helynév a Nominatim (OpenStreetMap) geokódoló szolgáltatáson keresztül
+  fordul le koordinátára, Budapestre súlyozva a találatokat.
+- **Útvonalszámítás** — a valódi utcahálózaton az OSRM (Open Source Routing Machine) számolja ki az
+  útvonalat. Az autós profilhoz az OSRM hivatalos publikus demószervere, a kerékpáros és gyalogos profilhoz a
+  FOSSGIS/OpenStreetMap.de közösségi tükre válaszol.
+
+Mivel mindhárom külső, élő hálózati szolgáltatás, ezekhez **valódi internetkapcsolat kell a böngészőből** —
+helyi fejlesztés közben (`npm run dev`) ez a szokásos módon működik. Ha valamelyik demószerver éppen túlterhelt
+vagy nem válaszol, az adott közlekedési mód kártyáján hibaüzenet jelenik meg ahelyett, hogy az egész app
+elszállna.
+
+## Miért nincs valódi tömegközlekedési (BKK) útvonal?
+
+Nyilvános, kulcs nélküli, élő magyar tömegközlekedési routing API nem létezik — a BKK saját API-ja
+regisztrációt/kulcsot igényel. Emiatt a harmadik összehasonlított mód a kerékpár lett, amit az OSRM ugyanúgy
+valós útvonalon, valós idő- és távolságadattal tud számolni, mint az autót vagy a gyaloglást.
 
 ## Hogyan működik?
 
-- **Gráf** (`src/data/graph.ts`) — csomópontok (`NODES`) és élek (`EDGES`), minden élhez tartozik egy közlekedési
-  mód (`walk` / `transit` / `car`) és egy valós becslésen alapuló távolság (km). A hidak (Margit híd, Lánchíd,
-  Erzsébet híd, Szabadság híd, Petőfi híd) külön élként kötik össze a két oldalt.
-- **Mód-paraméterek** (`src/lib/modeParams.ts`) — módonként egy átlagsebesség (km/h) és egy díjszámítás
-  (gyaloglás ingyenes, tömegközlekedés fix viteldíj, autó km-alapú üzemanyagköltség), ebből számolódik minden
-  élre az idő és a költség.
-- **Útvonalkeresés** (`src/lib/routing.ts`) — Dijkstra-algoritmus, külön lefuttatva mindhárom kritériumra
-  (távolság/idő/költség súlyozással), így a három javasolt útvonal ténylegesen a saját szempontja szerint
-  optimális — és ez tud különbözni is (pl. a leggyorsabb út hídon át tömegközlekedéssel, a legtakarékosabb
-  gyalogosan egy hosszabb, de ingyenes útvonalon).
-- **Térkép** (`src/components/MapView.tsx`) — kattintható SVG: első kattintás = indulás, második = cél,
-  harmadik kattintás új keresést kezd. A kiválasztott útvonalak külön színnel jelennek meg, ki-be kapcsolható
-  módon.
-- Nincs backend, nincs élő adat, nincs fiók — minden számítás a böngészőben fut.
+- **Helykeresés** (`src/lib/geocode.ts`, `src/components/SearchBox.tsx`) — legördülő javaslatlista, ahogy
+  gépelsz (debounce-olva, hogy ne terheljük feleslegesen a Nominatim szervert).
+- **Útvonalszámítás** (`src/lib/routing.ts`) — a kiválasztott két pont közt egyszerre kér útvonalat mindhárom
+  módra; a becsült költséget (`src/lib/modeParams.ts`) az OSRM-től kapott valós távolságból számolja (autó:
+  ~55 Ft/km üzemanyagbecslés, kerékpár/gyaloglás: ingyenes).
+- **Térkép** (`src/components/MapView.tsx`) — Leaflet térkép valódi OSM csempékkel, a kiválasztott két pont
+  jelölővel, a három útvonal pedig a tényleges utcavonalon, módonként más színnel.
+- **Összehasonlítás** (`src/components/RouteSummary.tsx`) — módonkénti kártyák táv/idő/becsült költség
+  adatokkal, "Legrövidebb" / "Leggyorsabb" / "Legtakarékosabb" jelvényekkel a nyertes mód(ok)on.
 
 ## Fejlesztés
 
 ```bash
 npm install
-npm run dev      # fejlesztői szerver
+npm run dev      # fejlesztői szerver — élő internetkapcsolat kell a térkép/keresés/útvonal működéséhez
 npm run build    # típusellenőrzés + production build
 npm run lint      # oxlint
 ```

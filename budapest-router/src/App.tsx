@@ -1,44 +1,39 @@
-import { useMemo, useState } from 'react';
+import { useEffect, useState } from 'react';
 import MapView from './components/MapView';
 import Controls from './components/Controls';
 import RouteSummary from './components/RouteSummary';
-import { findAllRoutes } from './lib/routing';
-import type { Criterion } from './types';
-
-const ALL_CRITERIA: Criterion[] = ['distance', 'time', 'cost'];
+import { findRoutes } from './lib/routing';
+import type { ModeRouteResult, Place } from './types';
 
 export default function App() {
-  const [startId, setStartId] = useState<string | null>(null);
-  const [endId, setEndId] = useState<string | null>(null);
-  const [visibleCriteria, setVisibleCriteria] = useState<Set<Criterion>>(new Set(ALL_CRITERIA));
+  const [start, setStart] = useState<Place | null>(null);
+  const [end, setEnd] = useState<Place | null>(null);
+  const [routes, setRoutes] = useState<ModeRouteResult[]>([]);
+  const [loading, setLoading] = useState(false);
 
-  const routes = useMemo((): Partial<Record<Criterion, ReturnType<typeof findAllRoutes>[Criterion]>> => {
-    if (!startId || !endId) return {};
-    return findAllRoutes(startId, endId);
-  }, [startId, endId]);
-
-  const handleSelectNode = (id: string) => {
-    if (!startId || (startId && endId)) {
-      setStartId(id);
-      setEndId(null);
+  useEffect(() => {
+    if (!start || !end) {
+      setRoutes([]);
       return;
     }
-    if (id === startId) return;
-    setEndId(id);
-  };
-
-  const handleToggleCriterion = (c: Criterion) => {
-    setVisibleCriteria((prev) => {
-      const next = new Set(prev);
-      if (next.has(c)) next.delete(c);
-      else next.add(c);
-      return next;
-    });
-  };
+    let cancelled = false;
+    setLoading(true);
+    findRoutes(start.position, end.position)
+      .then((result) => {
+        if (!cancelled) setRoutes(result);
+      })
+      .finally(() => {
+        if (!cancelled) setLoading(false);
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, [start, end]);
 
   const handleReset = () => {
-    setStartId(null);
-    setEndId(null);
+    setStart(null);
+    setEnd(null);
+    setRoutes([]);
   };
 
   return (
@@ -49,36 +44,25 @@ export default function App() {
             <span className="text-xl">🗺️</span> Budapest Útvonaltervező
           </div>
           <p className="mt-1 text-xs text-slate-500 dark:text-slate-400">
-            Sematikus, kézzel épített hálózat valós budapesti helyszínekkel — nem élő GPS/forgalmi adat.
-            Kattints egy pontra a kiinduláshoz, majd egy másikra a célhoz.
+            Valódi budapesti térkép és utcahálózat — írd be, honnan hova mész, és összehasonlítjuk az autós, a
+            kerékpáros és a gyalogos útvonalat.
           </p>
         </div>
       </header>
 
       <main className="mx-auto max-w-6xl px-4 py-6">
-        <div className="mb-6 grid grid-cols-1 gap-4 lg:grid-cols-[1fr_260px]">
-          <MapView startId={startId} endId={endId} routes={routes} visibleCriteria={visibleCriteria} onSelectNode={handleSelectNode} />
-          <Controls
-            startId={startId}
-            endId={endId}
-            visibleCriteria={visibleCriteria}
-            onToggleCriterion={handleToggleCriterion}
-            onReset={handleReset}
-          />
+        <div className="mb-6 grid grid-cols-1 gap-4 lg:grid-cols-[1fr_280px]">
+          <MapView start={start} end={end} routes={routes} />
+          <Controls start={start} end={end} onSelectStart={setStart} onSelectEnd={setEnd} onReset={handleReset} />
         </div>
 
-        {startId && endId && (
-          <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
-            {ALL_CRITERIA.map((c) => (
-              <RouteSummary key={c} criterion={c} route={routes[c] ?? null} />
-            ))}
-          </div>
-        )}
+        {loading && <p className="mb-4 text-sm text-slate-500 dark:text-slate-400">Útvonalak számítása…</p>}
+        {start && end && !loading && <RouteSummary routes={routes} />}
       </main>
 
       <footer className="mx-auto max-w-6xl px-4 py-6 text-xs text-slate-400">
-        Budapest Útvonaltervező — illusztrációs célú demó, sematikus hálózaton számolt útvonalakkal, nem valós
-        idejű navigációs eszköz.
+        Térkép: © OpenStreetMap közreműködői. Helykeresés: Nominatim. Útvonalak: OSRM (nyilvános, kulcs nélküli
+        szolgáltatások) — nem valós idejű forgalmi adat, a becsült idő/költség csak tájékoztató jellegű.
       </footer>
     </div>
   );

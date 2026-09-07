@@ -1,52 +1,64 @@
-import { getNode } from '../data/graph';
 import { formatHuf, formatKm, formatMin } from '../lib/format';
-import { MODE_LABEL } from '../lib/modeParams';
-import type { Criterion, Route } from '../types';
+import { MODE_ICON, MODE_LABEL } from '../lib/modeParams';
+import { isRouteError } from '../lib/routing';
+import type { ModeRouteResult, TransportMode } from '../types';
 
-const CRITERION_LABEL: Record<Criterion, string> = {
-  distance: 'Legrövidebb',
-  time: 'Leggyorsabb',
-  cost: 'Legtakarékosabb',
-};
+const MODE_ORDER: TransportMode[] = ['car', 'bike', 'foot'];
 
-const CRITERION_COLOR: Record<Criterion, string> = {
-  distance: 'border-blue-300 bg-blue-50 dark:border-blue-800 dark:bg-blue-900/20',
-  time: 'border-emerald-300 bg-emerald-50 dark:border-emerald-800 dark:bg-emerald-900/20',
-  cost: 'border-amber-300 bg-amber-50 dark:border-amber-800 dark:bg-amber-900/20',
-};
+function bestMode(routes: ModeRouteResult[], key: 'distanceKm' | 'timeMin' | 'costHuf'): TransportMode | null {
+  const ok = routes.filter((r): r is Extract<ModeRouteResult, { distanceKm: number }> => !isRouteError(r));
+  if (ok.length === 0) return null;
+  return ok.reduce((best, r) => (r[key] < best[key] ? r : best)).mode;
+}
 
-export default function RouteSummary({ criterion, route }: { criterion: Criterion; route: Route | null }) {
+export default function RouteSummary({ routes }: { routes: ModeRouteResult[] }) {
+  const shortest = bestMode(routes, 'distanceKm');
+  const fastest = bestMode(routes, 'timeMin');
+  const cheapest = bestMode(routes, 'costHuf');
+
   return (
-    <div className={`rounded-2xl border p-4 ${CRITERION_COLOR[criterion]}`}>
-      <h3 className="mb-2 font-semibold text-slate-900 dark:text-slate-100">{CRITERION_LABEL[criterion]} útvonal</h3>
-      {!route ? (
-        <p className="text-sm text-slate-500 dark:text-slate-400">Nincs elérhető útvonal a hálózaton.</p>
-      ) : (
-        <>
-          <div className="mb-3 flex flex-wrap gap-4 text-sm">
-            <span><strong>{formatKm(route.totalDistanceKm)}</strong> táv</span>
-            <span><strong>{formatMin(route.totalTimeMin)}</strong> idő</span>
-            <span><strong>{formatHuf(route.totalCostHuf)}</strong> költség</span>
+    <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
+      {MODE_ORDER.map((mode) => {
+        const result = routes.find((r) => r.mode === mode);
+        const badges: string[] = [];
+        if (shortest === mode) badges.push('Legrövidebb');
+        if (fastest === mode) badges.push('Leggyorsabb');
+        if (cheapest === mode) badges.push('Legtakarékosabb');
+
+        return (
+          <div
+            key={mode}
+            className="rounded-2xl border border-slate-200 bg-white p-4 dark:border-slate-800 dark:bg-slate-900"
+          >
+            <h3 className="mb-2 flex items-center gap-2 font-semibold text-slate-900 dark:text-slate-100">
+              <span>{MODE_ICON[mode]}</span> {MODE_LABEL[mode]}
+            </h3>
+            {!result ? (
+              <p className="text-sm text-slate-400">várakozás…</p>
+            ) : isRouteError(result) ? (
+              <p className="text-sm text-red-500">{result.error}</p>
+            ) : (
+              <>
+                <div className="mb-2 flex flex-wrap gap-1">
+                  {badges.map((b) => (
+                    <span
+                      key={b}
+                      className="rounded-full bg-indigo-100 px-2 py-0.5 text-xs font-medium text-indigo-700 dark:bg-indigo-900/40 dark:text-indigo-300"
+                    >
+                      {b}
+                    </span>
+                  ))}
+                </div>
+                <div className="flex flex-col gap-1 text-sm text-slate-600 dark:text-slate-300">
+                  <span><strong>{formatKm(result.distanceKm)}</strong> táv</span>
+                  <span><strong>{formatMin(result.timeMin)}</strong> idő</span>
+                  <span><strong>{formatHuf(result.costHuf)}</strong> becsült költség</span>
+                </div>
+              </>
+            )}
           </div>
-          <ol className="space-y-1 text-sm text-slate-600 dark:text-slate-300">
-            {route.nodeIds.map((nodeId, i) => {
-              const node = getNode(nodeId)!;
-              const step = route.steps[i - 1];
-              return (
-                <li key={i}>
-                  {step && (
-                    <div className="pl-2 text-xs text-slate-400">
-                      ↓ {MODE_LABEL[step.edge.mode]} · {formatKm(step.edge.distanceKm)} · {formatMin(step.timeMin)}
-                      {step.costHuf > 0 && ` · ${formatHuf(step.costHuf)}`}
-                    </div>
-                  )}
-                  <div className="font-medium text-slate-800 dark:text-slate-200">{node.name}</div>
-                </li>
-              );
-            })}
-          </ol>
-        </>
-      )}
+        );
+      })}
     </div>
   );
 }

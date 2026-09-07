@@ -1,104 +1,99 @@
-import { EDGES, NODES, getNode } from '../data/graph';
-import type { Criterion, Route } from '../types';
+import { useEffect, useRef } from 'react';
+import L from 'leaflet';
+import 'leaflet/dist/leaflet.css';
+import { MODE_COLOR } from '../lib/modeParams';
+import { isRouteError } from '../lib/routing';
+import type { LatLng, ModeRouteResult, Place } from '../types';
 
-const MODE_STROKE: Record<string, string> = {
-  walk: '#94a3b8',
-  transit: '#818cf8',
-  car: '#f59e0b',
-};
-
-const ROUTE_STROKE: Record<Criterion, string> = {
-  distance: '#2563eb',
-  time: '#059669',
-  cost: '#d97706',
-};
-
-interface MapViewProps {
-  startId: string | null;
-  endId: string | null;
-  routes: Partial<Record<Criterion, Route | null>>;
-  visibleCriteria: Set<Criterion>;
-  onSelectNode: (id: string) => void;
+// A Leaflet alapértelmezett marker-ikonjai a build után relatív útként törnek el
+// (webpack/vite bundlerekkel ismert probléma) — helyette saját, egyszerű
+// SVG pin-eket rajzolunk kiindulási (zöld) és cél (piros) jelölőnek.
+function pinIcon(color: string): L.DivIcon {
+  return L.divIcon({
+    className: '',
+    html: `<svg width="28" height="40" viewBox="0 0 28 40" xmlns="http://www.w3.org/2000/svg"><path d="M14 0C6.3 0 0 6.3 0 14c0 10.5 14 26 14 26s14-15.5 14-26C28 6.3 21.7 0 14 0z" fill="${color}" stroke="white" stroke-width="1.5"/><circle cx="14" cy="14" r="5.5" fill="white"/></svg>`,
+    iconSize: [28, 40],
+    iconAnchor: [14, 40],
+  });
 }
 
-export default function MapView({ startId, endId, routes, visibleCriteria, onSelectNode }: MapViewProps) {
-  return (
-    <svg viewBox="0 0 760 600" className="h-auto w-full rounded-2xl border border-slate-200 bg-white dark:border-slate-800 dark:bg-slate-900">
-      {/* Sematikus Duna — nem GPS-pontos, csak tájékozódási segédlet */}
-      <path
-        d="M 415 0 C 400 130, 430 240, 410 350 C 395 430, 470 500, 480 600 L 525 600 C 500 500, 440 430, 450 350 C 460 240, 440 130, 460 0 Z"
-        fill="#bfdbfe"
-        className="dark:fill-slate-800"
-        opacity={0.6}
-      />
+const START_ICON = pinIcon('#16a34a');
+const END_ICON = pinIcon('#dc2626');
 
-      {/* Alaphálózat */}
-      {EDGES.map((edge, i) => {
-        const from = getNode(edge.from)!;
-        const to = getNode(edge.to)!;
-        return (
-          <line
-            key={i}
-            x1={from.x}
-            y1={from.y}
-            x2={to.x}
-            y2={to.y}
-            stroke={MODE_STROKE[edge.mode]}
-            strokeWidth={edge.mode === 'walk' ? 1.5 : 2.5}
-            strokeDasharray={edge.mode === 'walk' ? '3 3' : undefined}
-            opacity={0.55}
-          />
-        );
-      })}
+const BUDAPEST_CENTER: L.LatLngExpression = [47.4979, 19.0402];
 
-      {/* Kiszámolt útvonalak — típusonként külön szín, kicsit áttetsző, hogy az átfedések is látszódjanak */}
-      {(['distance', 'time', 'cost'] as Criterion[]).map((criterion) => {
-        const route = routes[criterion];
-        if (!route || !visibleCriteria.has(criterion)) return null;
-        const points = route.nodeIds.map((id) => {
-          const n = getNode(id)!;
-          return `${n.x},${n.y}`;
-        });
-        return (
-          <polyline
-            key={criterion}
-            points={points.join(' ')}
-            fill="none"
-            stroke={ROUTE_STROKE[criterion]}
-            strokeWidth={5}
-            strokeLinecap="round"
-            strokeLinejoin="round"
-            opacity={0.8}
-          />
-        );
-      })}
+interface MapViewProps {
+  start: Place | null;
+  end: Place | null;
+  routes: ModeRouteResult[];
+}
 
-      {/* Csomópontok */}
-      {NODES.map((node) => {
-        const isStart = node.id === startId;
-        const isEnd = node.id === endId;
-        return (
-          <g key={node.id} className="cursor-pointer" onClick={() => onSelectNode(node.id)}>
-            <circle
-              cx={node.x}
-              cy={node.y}
-              r={isStart || isEnd ? 8 : 5}
-              fill={isStart ? '#16a34a' : isEnd ? '#dc2626' : '#475569'}
-              stroke="white"
-              strokeWidth={1.5}
-            />
-            <text
-              x={node.x}
-              y={node.y - 10}
-              textAnchor="middle"
-              fontSize={10}
-              className="pointer-events-none fill-slate-700 dark:fill-slate-300"
-            >
-              {node.name}
-            </text>
-          </g>
-        );
-      })}
-    </svg>
-  );
+export default function MapView({ start, end, routes }: MapViewProps) {
+  const containerRef = useRef<HTMLDivElement | null>(null);
+  const mapRef = useRef<L.Map | null>(null);
+  const startMarkerRef = useRef<L.Marker | null>(null);
+  const endMarkerRef = useRef<L.Marker | null>(null);
+  const routeLayersRef = useRef<L.Polyline[]>([]);
+
+  useEffect(() => {
+    if (!containerRef.current || mapRef.current) return;
+    const map = L.map(containerRef.current, { center: BUDAPEST_CENTER, zoom: 12 });
+    L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {
+      maxZoom: 19,
+      attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> közreműködői',
+    }).addTo(map);
+    mapRef.current = map;
+    return () => {
+      map.remove();
+      mapRef.current = null;
+    };
+  }, []);
+
+  useEffect(() => {
+    const map = mapRef.current;
+    if (!map) return;
+
+    if (startMarkerRef.current) {
+      map.removeLayer(startMarkerRef.current);
+      startMarkerRef.current = null;
+    }
+    if (endMarkerRef.current) {
+      map.removeLayer(endMarkerRef.current);
+      endMarkerRef.current = null;
+    }
+    for (const layer of routeLayersRef.current) map.removeLayer(layer);
+    routeLayersRef.current = [];
+
+    const bounds: LatLng[] = [];
+
+    if (start) {
+      startMarkerRef.current = L.marker([start.position.lat, start.position.lng], { icon: START_ICON }).addTo(map);
+      bounds.push(start.position);
+    }
+    if (end) {
+      endMarkerRef.current = L.marker([end.position.lat, end.position.lng], { icon: END_ICON }).addTo(map);
+      bounds.push(end.position);
+    }
+
+    for (const result of routes) {
+      if (isRouteError(result)) continue;
+      const line = L.polyline(
+        result.positions.map((p) => [p.lat, p.lng]),
+        { color: MODE_COLOR[result.mode], weight: 5, opacity: 0.75 },
+      ).addTo(map);
+      routeLayersRef.current.push(line);
+      bounds.push(...result.positions);
+    }
+
+    if (bounds.length === 1) {
+      map.setView([bounds[0].lat, bounds[0].lng], 15);
+    } else if (bounds.length > 1) {
+      map.fitBounds(
+        bounds.map((p) => [p.lat, p.lng]),
+        { padding: [32, 32] },
+      );
+    }
+  }, [start, end, routes]);
+
+  return <div ref={containerRef} className="h-[26rem] w-full rounded-2xl border border-slate-200 lg:h-[34rem] dark:border-slate-800" />;
 }

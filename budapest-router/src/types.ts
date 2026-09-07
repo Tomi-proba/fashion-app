@@ -1,33 +1,28 @@
-export type EdgeMode = 'walk' | 'transit' | 'car';
+export type TransportMode = 'car' | 'bike' | 'foot';
 
-export interface GraphNode {
-  id: string;
-  name: string;
-  side: 'buda' | 'pest';
-  x: number;
-  y: number;
+export interface LatLng {
+  lat: number;
+  lng: number;
 }
 
-export interface GraphEdge {
-  from: string;
-  to: string;
-  mode: EdgeMode;
-  distanceKm: number;
+export interface Place {
+  label: string;
+  position: LatLng;
 }
 
 export type Criterion = 'distance' | 'time' | 'cost';
 
-export interface RouteStep {
-  edge: GraphEdge;
+export interface ModeRoute {
+  mode: TransportMode;
+  positions: LatLng[];
+  distanceKm: number;
   timeMin: number;
   costHuf: number;
 }
 
-export interface Route {
-  criterion: Criterion;
-  nodeIds: string[];
-  steps: RouteStep[];
-  totalDistanceKm: number;
-  totalTimeMin: number;
-  totalCostHuf: number;
+export interface ModeRouteError {
+  mode: TransportMode;
+  error: string;
 }
+
+export type ModeRouteResult = ModeRoute | ModeRouteError;
