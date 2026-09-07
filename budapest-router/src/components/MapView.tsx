@@ -1,9 +1,9 @@
 import { useEffect, useRef } from 'react';
 import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
-import { MODE_COLOR } from '../lib/modeParams';
-import { isRouteError } from '../lib/routing';
-import type { LatLng, ModeRouteResult, Place } from '../types';
+import { CRITERION_COLOR } from '../lib/modeParams';
+import { isRoutesError } from '../lib/routing';
+import type { Criterion, LatLng, Place, RoutesResult } from '../types';
 
 // A Leaflet alapértelmezett marker-ikonjai a build után relatív útként törnek el
 // (webpack/vite bundlerekkel ismert probléma) — helyette saját, egyszerű
@@ -25,10 +25,11 @@ const BUDAPEST_CENTER: L.LatLngExpression = [47.4979, 19.0402];
 interface MapViewProps {
   start: Place | null;
   end: Place | null;
-  routes: ModeRouteResult[];
+  result: RoutesResult | null;
+  visibleCriteria: Set<Criterion>;
 }
 
-export default function MapView({ start, end, routes }: MapViewProps) {
+export default function MapView({ start, end, result, visibleCriteria }: MapViewProps) {
   const containerRef = useRef<HTMLDivElement | null>(null);
   const mapRef = useRef<L.Map | null>(null);
   const startMarkerRef = useRef<L.Marker | null>(null);
@@ -75,14 +76,18 @@ export default function MapView({ start, end, routes }: MapViewProps) {
       bounds.push(end.position);
     }
 
-    for (const result of routes) {
-      if (isRouteError(result)) continue;
-      const line = L.polyline(
-        result.positions.map((p) => [p.lat, p.lng]),
-        { color: MODE_COLOR[result.mode], weight: 5, opacity: 0.75 },
-      ).addTo(map);
-      routeLayersRef.current.push(line);
-      bounds.push(...result.positions);
+    if (result && !isRoutesError(result)) {
+      for (const criterion of ['distance', 'time', 'cost'] as Criterion[]) {
+        if (!visibleCriteria.has(criterion)) continue;
+        const route = result[criterion];
+        if (!route) continue;
+        const line = L.polyline(
+          route.positions.map((p) => [p.lat, p.lng]),
+          { color: CRITERION_COLOR[criterion], weight: 5, opacity: 0.8 },
+        ).addTo(map);
+        routeLayersRef.current.push(line);
+        bounds.push(...route.positions);
+      }
     }
 
     if (bounds.length === 1) {
@@ -93,7 +98,7 @@ export default function MapView({ start, end, routes }: MapViewProps) {
         { padding: [32, 32] },
       );
     }
-  }, [start, end, routes]);
+  }, [start, end, result, visibleCriteria]);
 
   return <div ref={containerRef} className="h-[26rem] w-full rounded-2xl border border-slate-200 lg:h-[34rem] dark:border-slate-800" />;
 }
