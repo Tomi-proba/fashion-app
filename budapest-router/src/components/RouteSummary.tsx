@@ -3,7 +3,7 @@ import { MODE_ICON, MODE_LABEL } from '../lib/modeParams';
 import { isRouteError } from '../lib/routing';
 import type { ModeRouteResult, TransportMode } from '../types';
 
-const MODE_ORDER: TransportMode[] = ['car', 'bike', 'foot'];
+const MODE_ORDER: TransportMode[] = ['car', 'metro', 'bus', 'tram'];
 
 function bestMode(routes: ModeRouteResult[], key: 'distanceKm' | 'timeMin' | 'costHuf'): TransportMode | null {
   const ok = routes.filter((r): r is Extract<ModeRouteResult, { distanceKm: number }> => !isRouteError(r));
@@ -17,7 +17,7 @@ export default function RouteSummary({ routes }: { routes: ModeRouteResult[] }) 
   const cheapest = bestMode(routes, 'costHuf');
 
   return (
-    <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
+    <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
       {MODE_ORDER.map((mode) => {
         const result = routes.find((r) => r.mode === mode);
         const badges: string[] = [];
@@ -54,6 +54,9 @@ export default function RouteSummary({ routes }: { routes: ModeRouteResult[] }) 
                   <span><strong>{formatMin(result.timeMin)}</strong> idő</span>
                   <span><strong>{formatHuf(result.costHuf)}</strong> becsült költség</span>
                 </div>
+                {mode !== 'car' && (
+                  <p className="mt-2 text-xs text-slate-400">Becslés — nem valós BKK menetrend/útvonal.</p>
+                )}
               </>
             )}
           </div>

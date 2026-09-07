@@ -44,8 +44,8 @@ export default function App() {
             <span className="text-xl">🗺️</span> Budapest Útvonaltervező
           </div>
           <p className="mt-1 text-xs text-slate-500 dark:text-slate-400">
-            Valódi budapesti térkép és utcahálózat — írd be, honnan hova mész, és összehasonlítjuk az autós, a
-            kerékpáros és a gyalogos útvonalat.
+            Valódi budapesti térkép és utcahálózat — írd be, honnan hova mész, és összehasonlítjuk az autós,
+            metrós, buszos és villamosos útvonalat.
           </p>
         </div>
       </header>
@@ -68,8 +68,10 @@ export default function App() {
       </main>
 
       <footer className="mx-auto max-w-6xl px-4 py-6 text-xs text-slate-400">
-        Térkép: © OpenStreetMap közreműködői. Helykeresés: Nominatim. Útvonalak: OSRM (nyilvános, kulcs nélküli
-        szolgáltatások) — nem valós idejű forgalmi adat, a becsült idő/költség csak tájékoztató jellegű.
+        Térkép: © OpenStreetMap közreműködői. Helykeresés: Nominatim. Autós útvonal: OSRM (nyilvános, kulcs
+        nélküli szolgáltatás) valós utcahálózaton. Metró/busz/villamos: mivel nincs ingyenes BKK menetrend-API,
+        ezek légvonal-becslésen alapulnak (nem valós vonal/megálló/menetrend) — a jegyár viszont a tényleges
+        450 Ft-os egyvonalas BKK-tarifa.
       </footer>
     </div>
   );

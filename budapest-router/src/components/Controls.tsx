@@ -2,7 +2,7 @@ import SearchBox from './SearchBox';
 import { MODE_COLOR, MODE_LABEL } from '../lib/modeParams';
 import type { Place, TransportMode } from '../types';
 
-const MODE_ORDER: TransportMode[] = ['car', 'bike', 'foot'];
+const MODE_ORDER: TransportMode[] = ['car', 'metro', 'bus', 'tram'];
 
 interface ControlsProps {
   start: Place | null;
