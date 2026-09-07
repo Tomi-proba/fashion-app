@@ -9,14 +9,24 @@ interface ControlsProps {
   end: Place | null;
   onSelectStart: (place: Place) => void;
   onSelectEnd: (place: Place) => void;
+  onSearch: () => void;
   onReset: () => void;
 }
 
-export default function Controls({ start, end, onSelectStart, onSelectEnd, onReset }: ControlsProps) {
+export default function Controls({ start, end, onSelectStart, onSelectEnd, onSearch, onReset }: ControlsProps) {
   return (
     <div className="flex flex-col gap-4 rounded-2xl border border-slate-200 bg-white p-4 dark:border-slate-800 dark:bg-slate-900">
       <SearchBox label="Honnan" placeholder="pl. Deák Ferenc tér" value={start} onSelect={onSelectStart} />
       <SearchBox label="Hova" placeholder="pl. Keleti pályaudvar" value={end} onSelect={onSelectEnd} />
+
+      <button
+        type="button"
+        disabled={!start || !end}
+        onClick={onSearch}
+        className="rounded-lg bg-indigo-600 px-3 py-2 text-sm font-medium text-white hover:bg-indigo-500 disabled:cursor-not-allowed disabled:bg-slate-300 dark:disabled:bg-slate-700"
+      >
+        Útvonalak keresése
+      </button>
 
       <button
         type="button"

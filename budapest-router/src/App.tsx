@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import MapView from './components/MapView';
 import Controls from './components/Controls';
 import RouteSummary from './components/RouteSummary';
@@ -11,24 +11,24 @@ export default function App() {
   const [routes, setRoutes] = useState<ModeRouteResult[]>([]);
   const [loading, setLoading] = useState(false);
 
+  const runSearch = useCallback((from: Place, to: Place) => {
+    setLoading(true);
+    findRoutes(from.position, to.position)
+      .then(setRoutes)
+      .finally(() => setLoading(false));
+  }, []);
+
   useEffect(() => {
     if (!start || !end) {
       setRoutes([]);
       return;
     }
-    let cancelled = false;
-    setLoading(true);
-    findRoutes(start.position, end.position)
-      .then((result) => {
-        if (!cancelled) setRoutes(result);
-      })
-      .finally(() => {
-        if (!cancelled) setLoading(false);
-      });
-    return () => {
-      cancelled = true;
-    };
-  }, [start, end]);
+    runSearch(start, end);
+  }, [start, end, runSearch]);
+
+  const handleSearch = () => {
+    if (start && end) runSearch(start, end);
+  };
 
   const handleReset = () => {
     setStart(null);
@@ -53,7 +53,14 @@ export default function App() {
       <main className="mx-auto max-w-6xl px-4 py-6">
         <div className="mb-6 grid grid-cols-1 gap-4 lg:grid-cols-[1fr_280px]">
           <MapView start={start} end={end} routes={routes} />
-          <Controls start={start} end={end} onSelectStart={setStart} onSelectEnd={setEnd} onReset={handleReset} />
+          <Controls
+            start={start}
+            end={end}
+            onSelectStart={setStart}
+            onSelectEnd={setEnd}
+            onSearch={handleSearch}
+            onReset={handleReset}
+          />
         </div>
 
         {loading && <p className="mb-4 text-sm text-slate-500 dark:text-slate-400">Útvonalak számítása…</p>}
