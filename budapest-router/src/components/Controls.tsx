@@ -5,17 +5,26 @@ import type { Criterion, Place } from '../types';
 const CRITERIA: Criterion[] = ['distance', 'time', 'cost'];
 const MAX_STOPS = 5;
 
+interface ChargersStatus {
+  loading: boolean;
+  error: string | null;
+  count: number | null;
+}
+
 interface ControlsProps {
   start: Place | null;
   end: Place | null;
   stops: (Place | null)[];
   visibleCriteria: Set<Criterion>;
+  showChargers: boolean;
+  chargersStatus: ChargersStatus;
   onSelectStart: (place: Place) => void;
   onSelectEnd: (place: Place) => void;
   onSelectStop: (index: number, place: Place) => void;
   onAddStop: () => void;
   onRemoveStop: (index: number) => void;
   onToggleCriterion: (c: Criterion) => void;
+  onToggleChargers: () => void;
   onSearch: () => void;
   onReset: () => void;
 }
@@ -25,12 +34,15 @@ export default function Controls({
   end,
   stops,
   visibleCriteria,
+  showChargers,
+  chargersStatus,
   onSelectStart,
   onSelectEnd,
   onSelectStop,
   onAddStop,
   onRemoveStop,
   onToggleCriterion,
+  onToggleChargers,
   onSearch,
   onReset,
 }: ControlsProps) {
@@ -103,6 +115,22 @@ export default function Controls({
             </label>
           ))}
         </div>
+      </div>
+
+      <div>
+        <div className="mb-1.5 text-xs font-semibold uppercase tracking-wide text-slate-500 dark:text-slate-400">
+          Elektromos töltők
+        </div>
+        <label className="flex items-center gap-2 text-sm text-slate-700 dark:text-slate-200">
+          <input type="checkbox" checked={showChargers} onChange={onToggleChargers} />
+          <span className="inline-block h-2.5 w-2.5 rounded-full bg-cyan-600" />
+          Töltőállomások (egész Magyarország)
+        </label>
+        {chargersStatus.loading && <p className="mt-1 text-xs text-slate-400">töltők betöltése…</p>}
+        {chargersStatus.error && <p className="mt-1 text-xs text-red-500">{chargersStatus.error}</p>}
+        {!chargersStatus.loading && !chargersStatus.error && chargersStatus.count !== null && (
+          <p className="mt-1 text-xs text-slate-400">{chargersStatus.count} töltőállomás betöltve</p>
+        )}
       </div>
     </div>
   );

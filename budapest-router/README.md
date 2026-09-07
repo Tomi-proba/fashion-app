@@ -6,15 +6,19 @@ hozzáadása) —, és kiválasztod (jelölőnégyzetekkel), melyik autós útvo
 
 ## Milyen adatforrásokat használ?
 
-- **Térkép** — valódi OpenStreetMap csempék (`tile.openstreetmap.org`), Leaflet segítségével megjelenítve.
+- **Térkép** — CARTO Positron csempék (letisztult, visszafogott stílus a szokásos, sokszínű OSM alapstílus
+  helyett), Leaflet segítségével megjelenítve.
 - **Helykeresés** — a beírt cím/helynév a Nominatim (OpenStreetMap) geokódoló szolgáltatáson keresztül
   fordul le koordinátára, Budapestre súlyozva a találatokat.
 - **Útvonal** — a valódi utcahálózaton az OSRM (Open Source Routing Machine) hivatalos publikus demószervere
   számolja ki az útvonalat, `alternatives=true` paraméterrel több útvonal-jelöltet is lekérve.
+- **Elektromos töltők** — az OpenStreetMap-ben feltérképezett töltőállomások Magyarország egész területéről,
+  az Overpass API-n keresztül lekérve (`amenity=charging_station`), csoportosított (klaszterezett) jelölőkkel,
+  hogy több ezer pont mellett is átlátható maradjon a térkép.
 
 Mind ingyenes, kulcs nélküli, publikus szolgáltatás — nincs backend, nincs regisztráció, de **valódi
 internetkapcsolat kell a böngészőből**: helyi fejlesztés közben (`npm run dev`) ez a szokásos módon működik.
-Ha az OSRM demószerver éppen túlterhelt vagy nem válaszol, hibaüzenet jelenik meg ahelyett, hogy az egész app
+Ha egy szolgáltatás éppen túlterhelt vagy nem válaszol, hibaüzenet jelenik meg ahelyett, hogy az egész app
 elszállna.
 
 ## Hogyan lesz három különböző útvonal egyetlen autós módból?

@@ -7,6 +7,12 @@ import type { Criterion, Place, RoutesResult } from './types';
 
 const ALL_CRITERIA: Criterion[] = ['distance', 'time', 'cost'];
 
+interface ChargersStatus {
+  loading: boolean;
+  error: string | null;
+  count: number | null;
+}
+
 export default function App() {
   const [start, setStart] = useState<Place | null>(null);
   const [end, setEnd] = useState<Place | null>(null);
@@ -14,6 +20,8 @@ export default function App() {
   const [result, setResult] = useState<RoutesResult | null>(null);
   const [visibleCriteria, setVisibleCriteria] = useState<Set<Criterion>>(new Set(ALL_CRITERIA));
   const [loading, setLoading] = useState(false);
+  const [showChargers, setShowChargers] = useState(true);
+  const [chargersStatus, setChargersStatus] = useState<ChargersStatus>({ loading: false, error: null, count: null });
 
   const runSearch = useCallback((from: Place, via: (Place | null)[], to: Place) => {
     if (via.some((s) => s === null)) return;
@@ -57,6 +65,8 @@ export default function App() {
     setResult(null);
   };
 
+  const handleChargersStatus = useCallback((status: ChargersStatus) => setChargersStatus(status), []);
+
   return (
     <div className="min-h-screen bg-slate-50 dark:bg-slate-950">
       <header className="border-b border-slate-200 bg-white dark:border-slate-800 dark:bg-slate-900">
@@ -74,18 +84,29 @@ export default function App() {
 
       <main className="mx-auto max-w-6xl px-4 py-6">
         <div className="mb-6 grid grid-cols-1 gap-4 lg:grid-cols-[1fr_280px]">
-          <MapView start={start} end={end} stops={stops} result={result} visibleCriteria={visibleCriteria} />
+          <MapView
+            start={start}
+            end={end}
+            stops={stops}
+            result={result}
+            visibleCriteria={visibleCriteria}
+            showChargers={showChargers}
+            onChargersStatus={handleChargersStatus}
+          />
           <Controls
             start={start}
             end={end}
             stops={stops}
             visibleCriteria={visibleCriteria}
+            showChargers={showChargers}
+            chargersStatus={chargersStatus}
             onSelectStart={setStart}
             onSelectEnd={setEnd}
             onSelectStop={handleSelectStop}
             onAddStop={handleAddStop}
             onRemoveStop={handleRemoveStop}
             onToggleCriterion={handleToggleCriterion}
+            onToggleChargers={() => setShowChargers((v) => !v)}
             onSearch={handleSearch}
             onReset={handleReset}
           />
@@ -96,9 +117,10 @@ export default function App() {
       </main>
 
       <footer className="mx-auto max-w-6xl px-4 py-6 text-xs text-slate-400">
-        Térkép: © OpenStreetMap közreműködői. Helykeresés: Nominatim. Útvonal: OSRM (nyilvános, kulcs nélküli
-        szolgáltatás) valós utcahálózaton, több útvonal-jelölt közül választva — nem valós idejű forgalmi adat,
-        a becsült idő/energiaköltség csak tájékoztató jellegű.
+        Térkép: CARTO Positron csempék © OpenStreetMap közreműködői. Helykeresés: Nominatim. Útvonal: OSRM
+        (nyilvános, kulcs nélküli szolgáltatás) valós utcahálózaton, több útvonal-jelölt közül választva.
+        Elektromos töltők: OpenStreetMap / Overpass API, Magyarország egész területéről. Egyik forrás sem
+        valós idejű forgalmi adat — a becsült idő/energiaköltség csak tájékoztató jellegű.
       </footer>
     </div>
   );
