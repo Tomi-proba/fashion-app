@@ -3,13 +3,18 @@ import { CRITERION_COLOR, CRITERION_LABEL } from '../lib/modeParams';
 import type { Criterion, Place } from '../types';
 
 const CRITERIA: Criterion[] = ['distance', 'time', 'cost'];
+const MAX_STOPS = 5;
 
 interface ControlsProps {
   start: Place | null;
   end: Place | null;
+  stops: (Place | null)[];
   visibleCriteria: Set<Criterion>;
   onSelectStart: (place: Place) => void;
   onSelectEnd: (place: Place) => void;
+  onSelectStop: (index: number, place: Place) => void;
+  onAddStop: () => void;
+  onRemoveStop: (index: number) => void;
   onToggleCriterion: (c: Criterion) => void;
   onSearch: () => void;
   onReset: () => void;
@@ -18,21 +23,59 @@ interface ControlsProps {
 export default function Controls({
   start,
   end,
+  stops,
   visibleCriteria,
   onSelectStart,
   onSelectEnd,
+  onSelectStop,
+  onAddStop,
+  onRemoveStop,
   onToggleCriterion,
   onSearch,
   onReset,
 }: ControlsProps) {
+  const canSearch = !!start && !!end && stops.every((s) => s !== null);
+
   return (
     <div className="flex flex-col gap-4 rounded-2xl border border-slate-200 bg-white p-4 dark:border-slate-800 dark:bg-slate-900">
       <SearchBox label="Honnan" placeholder="pl. Deák Ferenc tér" value={start} onSelect={onSelectStart} />
+
+      {stops.map((stop, i) => (
+        <div key={i} className="flex items-end gap-1.5">
+          <div className="flex-1">
+            <SearchBox
+              label={`${i + 1}. megálló`}
+              placeholder="pl. Nyugati pályaudvar"
+              value={stop}
+              onSelect={(place) => onSelectStop(i, place)}
+            />
+          </div>
+          <button
+            type="button"
+            aria-label="Megálló törlése"
+            onClick={() => onRemoveStop(i)}
+            className="mb-[1px] shrink-0 rounded-lg border border-slate-300 px-3 py-2 text-slate-500 hover:bg-slate-100 dark:border-slate-700 dark:text-slate-300 dark:hover:bg-slate-800"
+          >
+            ✕
+          </button>
+        </div>
+      ))}
+
       <SearchBox label="Hova" placeholder="pl. Keleti pályaudvar" value={end} onSelect={onSelectEnd} />
+
+      {stops.length < MAX_STOPS && (
+        <button
+          type="button"
+          onClick={onAddStop}
+          className="self-start rounded-lg border border-dashed border-slate-300 px-3 py-1.5 text-sm text-slate-600 hover:bg-slate-100 dark:border-slate-700 dark:text-slate-300 dark:hover:bg-slate-800"
+        >
+          + Megálló hozzáadása
+        </button>
+      )}
 
       <button
         type="button"
-        disabled={!start || !end}
+        disabled={!canSearch}
         onClick={onSearch}
         className="rounded-lg bg-indigo-600 px-3 py-2 text-sm font-medium text-white hover:bg-indigo-500 disabled:cursor-not-allowed disabled:bg-slate-300 dark:disabled:bg-slate-700"
       >

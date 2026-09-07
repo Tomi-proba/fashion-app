@@ -1,8 +1,8 @@
 # Budapest Útvonaltervező
 
-Valódi, interaktív térkép Budapestről: beírod, honnan hova mész (nem kell kattintgatni fix pontok közt), és
-kiválasztod (jelölőnégyzetekkel), melyik autós útvonalat szeretnéd látni a térképen: **legrövidebb**,
-**leggyorsabb** vagy **legenergiatakarékosabb** — akár mindhármat egyszerre, összehasonlításképp.
+Valódi, interaktív térkép Budapestről: beírod, honnan hova mész — akár közbeeső megállókkal is (+ Megálló
+hozzáadása) —, és kiválasztod (jelölőnégyzetekkel), melyik autós útvonalat szeretnéd látni a térképen:
+**legrövidebb**, **leggyorsabb** vagy **legenergiatakarékosabb** — akár mindhármat egyszerre, összehasonlításképp.
 
 ## Milyen adatforrásokat használ?
 
@@ -25,7 +25,8 @@ külön-külön a legkisebb távolságút (**legrövidebb**), a legrövidebb men
 becsült üzemanyagköltség alapján legkedvezőbbet (**legenergiatakarékosabb**) — utóbbihoz azt is figyelembe
 veszi, hogy alacsony átlagsebességű (sokat álló-induló) útvonalon jellemzően többet fogyaszt az autó
 kilométerenként (`src/lib/modeParams.ts`). Ha az OSRM csak egyetlen útvonalat ad vissza két pont közt, mindhárom
-kategória ugyanazt az egy útvonalat mutatja.
+kategória ugyanazt az egy útvonalat mutatja. Megállók hozzáadásakor (3+ pont) az OSRM valódi alternatívákat már
+nem ad, ilyenkor a pontok sorrendjét betartó egyetlen útvonalat mutatja mindhárom kártya.
 
 ## Hogyan működik?
 

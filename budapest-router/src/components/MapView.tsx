@@ -7,11 +7,15 @@ import type { Criterion, LatLng, Place, RoutesResult } from '../types';
 
 // A Leaflet alapértelmezett marker-ikonjai a build után relatív útként törnek el
 // (webpack/vite bundlerekkel ismert probléma) — helyette saját, egyszerű
-// SVG pin-eket rajzolunk kiindulási (zöld) és cél (piros) jelölőnek.
-function pinIcon(color: string): L.DivIcon {
+// SVG pin-eket rajzolunk: zöld a kiindulásnak, piros a célnak, lila (sorszámmal)
+// a köztes megállóknak.
+function pinIcon(color: string, label?: string): L.DivIcon {
+  const text = label
+    ? `<text x="14" y="17" text-anchor="middle" font-size="12" font-weight="700" fill="${color}">${label}</text>`
+    : `<circle cx="14" cy="14" r="5.5" fill="white"/>`;
   return L.divIcon({
     className: '',
-    html: `<svg width="28" height="40" viewBox="0 0 28 40" xmlns="http://www.w3.org/2000/svg"><path d="M14 0C6.3 0 0 6.3 0 14c0 10.5 14 26 14 26s14-15.5 14-26C28 6.3 21.7 0 14 0z" fill="${color}" stroke="white" stroke-width="1.5"/><circle cx="14" cy="14" r="5.5" fill="white"/></svg>`,
+    html: `<svg width="28" height="40" viewBox="0 0 28 40" xmlns="http://www.w3.org/2000/svg"><path d="M14 0C6.3 0 0 6.3 0 14c0 10.5 14 26 14 26s14-15.5 14-26C28 6.3 21.7 0 14 0z" fill="${color}" stroke="white" stroke-width="1.5"/>${label ? '<circle cx="14" cy="14" r="9" fill="white"/>' : ''}${text}</svg>`,
     iconSize: [28, 40],
     iconAnchor: [14, 40],
   });
@@ -19,21 +23,22 @@ function pinIcon(color: string): L.DivIcon {
 
 const START_ICON = pinIcon('#16a34a');
 const END_ICON = pinIcon('#dc2626');
+const STOP_COLOR = '#7c3aed';
 
 const BUDAPEST_CENTER: L.LatLngExpression = [47.4979, 19.0402];
 
 interface MapViewProps {
   start: Place | null;
   end: Place | null;
+  stops: (Place | null)[];
   result: RoutesResult | null;
   visibleCriteria: Set<Criterion>;
 }
 
-export default function MapView({ start, end, result, visibleCriteria }: MapViewProps) {
+export default function MapView({ start, end, stops, result, visibleCriteria }: MapViewProps) {
   const containerRef = useRef<HTMLDivElement | null>(null);
   const mapRef = useRef<L.Map | null>(null);
-  const startMarkerRef = useRef<L.Marker | null>(null);
-  const endMarkerRef = useRef<L.Marker | null>(null);
+  const markersRef = useRef<L.Marker[]>([]);
   const routeLayersRef = useRef<L.Polyline[]>([]);
 
   useEffect(() => {
@@ -54,25 +59,26 @@ export default function MapView({ start, end, result, visibleCriteria }: MapView
     const map = mapRef.current;
     if (!map) return;
 
-    if (startMarkerRef.current) {
-      map.removeLayer(startMarkerRef.current);
-      startMarkerRef.current = null;
-    }
-    if (endMarkerRef.current) {
-      map.removeLayer(endMarkerRef.current);
-      endMarkerRef.current = null;
-    }
+    for (const marker of markersRef.current) map.removeLayer(marker);
+    markersRef.current = [];
     for (const layer of routeLayersRef.current) map.removeLayer(layer);
     routeLayersRef.current = [];
 
     const bounds: LatLng[] = [];
 
     if (start) {
-      startMarkerRef.current = L.marker([start.position.lat, start.position.lng], { icon: START_ICON }).addTo(map);
+      markersRef.current.push(L.marker([start.position.lat, start.position.lng], { icon: START_ICON }).addTo(map));
       bounds.push(start.position);
     }
+    stops.forEach((stop, i) => {
+      if (!stop) return;
+      markersRef.current.push(
+        L.marker([stop.position.lat, stop.position.lng], { icon: pinIcon(STOP_COLOR, String(i + 1)) }).addTo(map),
+      );
+      bounds.push(stop.position);
+    });
     if (end) {
-      endMarkerRef.current = L.marker([end.position.lat, end.position.lng], { icon: END_ICON }).addTo(map);
+      markersRef.current.push(L.marker([end.position.lat, end.position.lng], { icon: END_ICON }).addTo(map));
       bounds.push(end.position);
     }
 
@@ -98,7 +104,7 @@ export default function MapView({ start, end, result, visibleCriteria }: MapView
         { padding: [32, 32] },
       );
     }
-  }, [start, end, result, visibleCriteria]);
+  }, [start, end, stops, result, visibleCriteria]);
 
   return <div ref={containerRef} className="h-[26rem] w-full rounded-2xl border border-slate-200 lg:h-[34rem] dark:border-slate-800" />;
 }

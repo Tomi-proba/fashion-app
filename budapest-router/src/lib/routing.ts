@@ -2,11 +2,14 @@ import { estimateCostHuf } from './modeParams';
 import type { Criterion, CriterionRoute, LatLng, RoutesResult } from '../types';
 
 // Az OSRM hivatalos publikus demószervere (kulcs nélküli, ingyenes) autós
-// profilra valós utcahálózaton számol útvonalat. Az `alternatives=true`
-// paraméterrel több útvonal-jelöltet is visszaad (pl. egy gyorsabb, de
-// hosszabb főúti és egy rövidebb, de lassabb belvárosi változatot) — ezek
-// közül választjuk ki külön-külön a legrövidebbet, leggyorsabbat és a
-// (becsült) legenergiatakarékosabbat.
+// profilra valós utcahálózaton számol útvonalat, akár több ponton (megállón)
+// keresztül is. Az `alternatives=true` paraméterrel — ami csak a legegyszerűbb,
+// két pontos esetben ad valódi alternatívákat — több útvonal-jelöltet is
+// visszaadhat (pl. egy gyorsabb, de hosszabb főúti és egy rövidebb, de lassabb
+// belvárosi változatot); ezek közül választjuk ki külön-külön a legrövidebbet,
+// leggyorsabbat és a (becsült) legenergiatakarékosabbat. Megállókkal (3+ pont)
+// az OSRM egyetlen, a pontok sorrendjét betartó útvonalat ad, ilyenkor
+// mindhárom kritérium ugyanazt az útvonalat mutatja.
 const OSRM_BASE = 'https://router.project-osrm.org';
 
 interface OsrmRouteRaw {
@@ -28,16 +31,19 @@ interface Candidate {
   costHuf: number;
 }
 
-export async function findRoutes(from: LatLng, to: LatLng): Promise<RoutesResult> {
-  const coords = `${from.lng},${from.lat};${to.lng},${to.lat}`;
-  const url = `${OSRM_BASE}/route/v1/driving/${coords}?overview=full&geometries=geojson&alternatives=true`;
+export async function findRoutes(waypoints: LatLng[]): Promise<RoutesResult> {
+  if (waypoints.length < 2) return { error: 'Legalább egy indulási és egy célpont kell.' };
+
+  const coords = waypoints.map((w) => `${w.lng},${w.lat}`).join(';');
+  const wantAlternatives = waypoints.length === 2;
+  const url = `${OSRM_BASE}/route/v1/driving/${coords}?overview=full&geometries=geojson${wantAlternatives ? '&alternatives=true' : ''}`;
 
   try {
     const response = await fetch(url);
     if (!response.ok) return { error: `Útvonalkeresés sikertelen (${response.status}).` };
     const data = (await response.json()) as OsrmResponse;
     if (data.code !== 'Ok' || !data.routes || data.routes.length === 0) {
-      return { error: data.message ?? 'Nincs útvonal a két pont között.' };
+      return { error: data.message ?? 'Nincs útvonal a megadott pontok között.' };
     }
 
     const candidates: Candidate[] = data.routes.map((r) => {

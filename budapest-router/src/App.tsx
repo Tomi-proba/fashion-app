@@ -10,13 +10,16 @@ const ALL_CRITERIA: Criterion[] = ['distance', 'time', 'cost'];
 export default function App() {
   const [start, setStart] = useState<Place | null>(null);
   const [end, setEnd] = useState<Place | null>(null);
+  const [stops, setStops] = useState<(Place | null)[]>([]);
   const [result, setResult] = useState<RoutesResult | null>(null);
   const [visibleCriteria, setVisibleCriteria] = useState<Set<Criterion>>(new Set(ALL_CRITERIA));
   const [loading, setLoading] = useState(false);
 
-  const runSearch = useCallback((from: Place, to: Place) => {
+  const runSearch = useCallback((from: Place, via: (Place | null)[], to: Place) => {
+    if (via.some((s) => s === null)) return;
     setLoading(true);
-    findRoutes(from.position, to.position)
+    const waypoints = [from.position, ...via.map((s) => s!.position), to.position];
+    findRoutes(waypoints)
       .then(setResult)
       .finally(() => setLoading(false));
   }, []);
@@ -26,12 +29,17 @@ export default function App() {
       setResult(null);
       return;
     }
-    runSearch(start, end);
-  }, [start, end, runSearch]);
+    runSearch(start, stops, end);
+  }, [start, end, runSearch, stops]);
 
   const handleSearch = () => {
-    if (start && end) runSearch(start, end);
+    if (start && end) runSearch(start, stops, end);
   };
+
+  const handleAddStop = () => setStops((prev) => [...prev, null]);
+  const handleSelectStop = (index: number, place: Place) =>
+    setStops((prev) => prev.map((s, i) => (i === index ? place : s)));
+  const handleRemoveStop = (index: number) => setStops((prev) => prev.filter((_, i) => i !== index));
 
   const handleToggleCriterion = (c: Criterion) => {
     setVisibleCriteria((prev) => {
@@ -45,6 +53,7 @@ export default function App() {
   const handleReset = () => {
     setStart(null);
     setEnd(null);
+    setStops([]);
     setResult(null);
   };
 
@@ -56,21 +65,26 @@ export default function App() {
             <span className="text-xl">🗺️</span> Budapest Útvonaltervező
           </div>
           <p className="mt-1 text-xs text-slate-500 dark:text-slate-400">
-            Valódi budapesti térkép és utcahálózat — írd be, honnan hova mész, és válaszd ki, melyik autós
-            útvonalat szeretnéd látni: legrövidebb, leggyorsabb vagy legenergiatakarékosabb.
+            Valódi budapesti térkép és utcahálózat — írd be, honnan hova mész (akár közbeeső megállókkal), és
+            válaszd ki, melyik autós útvonalat szeretnéd látni: legrövidebb, leggyorsabb vagy
+            legenergiatakarékosabb.
           </p>
         </div>
       </header>
 
       <main className="mx-auto max-w-6xl px-4 py-6">
         <div className="mb-6 grid grid-cols-1 gap-4 lg:grid-cols-[1fr_280px]">
-          <MapView start={start} end={end} result={result} visibleCriteria={visibleCriteria} />
+          <MapView start={start} end={end} stops={stops} result={result} visibleCriteria={visibleCriteria} />
           <Controls
             start={start}
             end={end}
+            stops={stops}
             visibleCriteria={visibleCriteria}
             onSelectStart={setStart}
             onSelectEnd={setEnd}
+            onSelectStop={handleSelectStop}
+            onAddStop={handleAddStop}
+            onRemoveStop={handleRemoveStop}
             onToggleCriterion={handleToggleCriterion}
             onSearch={handleSearch}
             onReset={handleReset}
