@@ -14,7 +14,7 @@ const DEFAULT_RULES: Rules = {
   surrenderAllowed: false,
 };
 
-const TRIALS_PER_ACTION = 15000;
+const TRIALS_PER_ACTION = 100000;
 
 export default function App() {
   const [playerCards, setPlayerCards] = useState<Rank[]>([]);

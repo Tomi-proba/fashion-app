@@ -1,7 +1,7 @@
 # Blackjack Tanácsadó
 
 Megadod a kezedet és az osztó felfedett lapját, a program pedig **valódi Monte Carlo-szimulációt futtat**
-(alapból 15 000 véletlen kört minden lehetséges lépésre — megáll, húz, dupláz, szétoszt, feladja), és megmondja,
+(alapból 100 000 véletlen kört minden lehetséges lépésre — megáll, húz, dupláz, szétoszt, feladja), és megmondja,
 melyiknek a legjobb a várható értéke adott helyzetben.
 
 ## Miért szimuláció, nem egy statikus táblázat?

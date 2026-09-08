@@ -1,7 +1,7 @@
 import { baseComposition, drawCard, handValue, removeKnownCards } from './deck';
 import type { Action, ActionResult, Rank, Rules } from '../types';
 
-const TRIALS_PER_ACTION = 15000;
+const TRIALS_PER_ACTION = 100000;
 
 // Egyszerű, gyors, jó statisztikai tulajdonságú pszeudovéletlen-generátor
 // (mulberry32) — determinisztikus seeddel is használható, de itt csak a
