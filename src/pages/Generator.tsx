@@ -16,11 +16,13 @@ export default function Generator({
   profile,
   savedOutfits,
   onToggleSaved,
+  onGoToWardrobe,
 }: {
   wardrobe: Item[]
   profile: Profile
   savedOutfits: Outfit[]
   onToggleSaved: (outfit: Outfit) => void
+  onGoToWardrobe: () => void
 }) {
   const owned = useMemo(() => wardrobe.filter((i) => i.status === 'owned'), [wardrobe])
 
@@ -99,26 +101,39 @@ export default function Generator({
       </section>
 
       <section className="mt-8 border-t border-neutral-100 pt-6 dark:border-neutral-800">
-        <p className="text-xs font-semibold uppercase tracking-wide text-neutral-400">
-          Generate from your own wardrobe {owned.length === 0 && '(add items on the Wardrobe tab first)'}
-        </p>
+        <div className="flex flex-wrap items-center justify-between gap-2">
+          <p className="text-xs font-semibold uppercase tracking-wide text-neutral-400">Generate from your own wardrobe</p>
+          {owned.length === 0 && (
+            <button
+              onClick={onGoToWardrobe}
+              className="rounded-full bg-neutral-900 px-3 py-1.5 text-xs font-semibold text-neutral-50 hover:bg-neutral-800 dark:bg-neutral-100 dark:text-neutral-900 dark:hover:bg-neutral-300"
+            >
+              Add wardrobe items →
+            </button>
+          )}
+        </div>
 
         <section className="mt-4">
           <h2 className="text-sm font-semibold text-neutral-800 dark:text-neutral-200">2. Anchor piece (optional)</h2>
           <p className="mt-1 text-xs text-neutral-400">Every outfit will be built around this item.</p>
-          <select
-            value={anchorItemId ?? ''}
-            onChange={(e) => setAnchorItemId(e.target.value || null)}
-            disabled={owned.length === 0}
-            className="mt-2 w-full rounded-lg border border-neutral-200 bg-white px-3 py-2 text-sm disabled:opacity-40 dark:border-neutral-700 dark:bg-neutral-900"
-          >
-            <option value="">None</option>
-            {owned.map((item) => (
-              <option key={item.id} value={item.id}>
-                {item.name}
-              </option>
-            ))}
-          </select>
+          {owned.length === 0 ? (
+            <p className="mt-2 rounded-lg border border-dashed border-neutral-200 px-3 py-2 text-xs text-neutral-400 dark:border-neutral-800">
+              No wardrobe items yet — add some to pick an anchor piece.
+            </p>
+          ) : (
+            <select
+              value={anchorItemId ?? ''}
+              onChange={(e) => setAnchorItemId(e.target.value || null)}
+              className="mt-2 w-full rounded-lg border border-neutral-200 bg-white px-3 py-2 text-sm dark:border-neutral-700 dark:bg-neutral-900"
+            >
+              <option value="">None</option>
+              {owned.map((item) => (
+                <option key={item.id} value={item.id}>
+                  {item.name}
+                </option>
+              ))}
+            </select>
+          )}
         </section>
 
         <section className="mt-6">

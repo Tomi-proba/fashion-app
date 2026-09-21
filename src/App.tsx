@@ -85,7 +85,13 @@ export default function App() {
       )}
 
       {page === 'generator' && (
-        <Generator wardrobe={wardrobe} profile={profile} savedOutfits={savedOutfits} onToggleSaved={toggleSaved} />
+        <Generator
+          wardrobe={wardrobe}
+          profile={profile}
+          savedOutfits={savedOutfits}
+          onToggleSaved={toggleSaved}
+          onGoToWardrobe={() => setPage('wardrobe')}
+        />
       )}
 
       {page === 'buy-check' && <BuyCheck wardrobe={wardrobe} onAddToWardrobe={addItem} />}
