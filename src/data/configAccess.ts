@@ -40,6 +40,8 @@ export interface StyleDef {
   description: string
   fitLean: string[]
   accessoryLean: string[]
+  archetype: string
+  suggestedColors: string[]
 }
 
 export const STYLE_DEFS: Record<StyleTag, StyleDef> = stylesConfig as unknown as Record<StyleTag, StyleDef>

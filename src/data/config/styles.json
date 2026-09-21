@@ -1,46 +1,60 @@
 {
-  "_comment": "OPINIONATED: base descriptions + fit lean per look, used for explanations and generator filtering.",
+  "_comment": "OPINIONATED: base descriptions + fit lean per look, used for explanations and generator filtering. archetype + suggestedColors power the wardrobe-free 'Suggested outfit & colors' button — a generic formula for the look, not drawn from the user's own items.",
 
   "streetwear": {
     "label": "Streetwear",
     "description": "Bold silhouettes, sneakers, graphic or utility pieces, confident layering.",
     "fitLean": ["relaxed", "oversized"],
-    "accessoryLean": ["chunky", "silver", "logo"]
+    "accessoryLean": ["chunky", "silver", "logo"],
+    "archetype": "Oversized hoodie or graphic tee, relaxed straight-leg denim, chunky sneakers, one statement accessory (cap, chain, or bold sunglasses).",
+    "suggestedColors": ["black", "white", "grey", "navy"]
   },
   "smart-casual": {
     "label": "Smart Casual",
     "description": "Polished but relaxed — the office-to-dinner middle ground.",
     "fitLean": ["regular", "slim"],
-    "accessoryLean": ["understated"]
+    "accessoryLean": ["understated"],
+    "archetype": "Button-down or fine knit, tailored chinos or dark jeans, clean leather sneakers or loafers, minimal accessories.",
+    "suggestedColors": ["navy", "white", "beige", "grey"]
   },
   "clean-minimal": {
     "label": "Clean Minimal",
     "description": "Neutral palette, simple lines, little pattern, quality basics.",
     "fitLean": ["regular", "slim"],
-    "accessoryLean": ["thin", "gold", "silver"]
+    "accessoryLean": ["thin", "gold", "silver"],
+    "archetype": "Single solid tee or shirt, straight trousers or jeans, one neutral outerwear layer, thin gold or silver jewelry.",
+    "suggestedColors": ["white", "black", "beige", "grey"]
   },
   "vintage-retro": {
     "label": "Vintage / Retro",
     "description": "Era-flavoured pieces — think 70s/90s cuts, warm tones, worn-in denim.",
     "fitLean": ["regular", "relaxed"],
-    "accessoryLean": ["gold", "statement"]
+    "accessoryLean": ["gold", "statement"],
+    "archetype": "Worn-in denim or corduroy, a warm-toned knit or graphic tee, leather boots, gold-frame sunglasses or a chunky watch.",
+    "suggestedColors": ["brown", "olive", "cream", "burgundy"]
   },
   "preppy": {
     "label": "Preppy",
     "description": "Collars, knits, tailored-but-easy pieces, classic Ivy-League-adjacent styling.",
     "fitLean": ["slim", "regular"],
-    "accessoryLean": ["gold", "structured"]
+    "accessoryLean": ["gold", "structured"],
+    "archetype": "Collared shirt or polo, a knit sweater layered over or on the shoulders, chinos, loafers or boat shoes, a leather belt.",
+    "suggestedColors": ["navy", "white", "khaki", "burgundy"]
   },
   "sporty": {
     "label": "Sporty",
     "description": "Performance and athleisure pieces built for movement.",
     "fitLean": ["regular", "relaxed"],
-    "accessoryLean": ["silver", "minimal"]
+    "accessoryLean": ["silver", "minimal"],
+    "archetype": "Performance tee or zip-up, joggers or track pants, clean trainers, a sports watch.",
+    "suggestedColors": ["black", "grey", "white", "blue"]
   },
   "dressy": {
     "label": "Dressy",
     "description": "Elevated occasion-wear — tailoring, fewer but higher-impact pieces.",
     "fitLean": ["slim", "regular"],
-    "accessoryLean": ["gold", "silver", "statement"]
+    "accessoryLean": ["gold", "silver", "statement"],
+    "archetype": "Tailored blazer or a fitted dress, structured trousers or a tailored skirt, heeled or polished dress shoes, one statement jewelry piece.",
+    "suggestedColors": ["black", "burgundy", "navy", "cream"]
   }
 }
