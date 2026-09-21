@@ -1,0 +1,16 @@
+{
+  "_comment": "OPINIONATED: formality bands per occasion — tune to taste.",
+  "occasions": [
+    { "id": "uni", "label": "Uni / class", "formalityRange": [1, 3], "description": "Comfortable, easy to move in, still put-together." },
+    { "id": "everyday", "label": "Everyday errands", "formalityRange": [1, 2], "description": "Low effort, high comfort." },
+    { "id": "dinner", "label": "Dinner out", "formalityRange": [3, 4], "description": "A step up from daywear, still relaxed." },
+    { "id": "date-night", "label": "Date night", "formalityRange": [3, 5], "description": "Intentional, a little elevated." },
+    { "id": "office", "label": "Office / work", "formalityRange": [3, 4], "description": "Smart, professional, not stiff." },
+    { "id": "party", "label": "Party", "formalityRange": [2, 4], "description": "Room to have fun with color and accessories." },
+    { "id": "wedding-guest", "label": "Wedding guest", "formalityRange": [4, 5], "description": "Dressy, avoid competing with the wedding party." },
+    { "id": "beach", "label": "Beach / poolside", "formalityRange": [1, 1], "description": "Light, breathable, minimal layers." },
+    { "id": "gym", "label": "Gym / workout", "formalityRange": [1, 1], "description": "Performance fabrics, function first." },
+    { "id": "winter-commute", "label": "Winter commute", "formalityRange": [1, 3], "description": "Layered for warmth without losing shape." },
+    { "id": "hot-summer-day", "label": "Hot summer day", "formalityRange": [1, 2], "description": "Light fabrics, breathable, sun-ready." }
+  ]
+}

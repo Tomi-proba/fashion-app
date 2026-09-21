@@ -1,0 +1,56 @@
+{
+  "_comment": "OPINIONATED: these palette/harmony rules are a starting point, tune freely.",
+
+  "palette": [
+    { "key": "black", "label": "Black", "hex": "#111111", "neutral": true, "temperature": "cool" },
+    { "key": "white", "label": "White", "hex": "#f5f5f4", "neutral": true, "temperature": "cool" },
+    { "key": "grey", "label": "Grey", "hex": "#9ca3af", "neutral": true, "temperature": "cool" },
+    { "key": "charcoal", "label": "Charcoal", "hex": "#374151", "neutral": true, "temperature": "cool" },
+    { "key": "navy", "label": "Navy", "hex": "#1e2a4a", "neutral": true, "temperature": "cool" },
+    { "key": "denim-blue", "label": "Denim blue", "hex": "#3b5a80", "neutral": true, "temperature": "cool" },
+    { "key": "beige", "label": "Beige", "hex": "#d9c7a3", "neutral": true, "temperature": "warm" },
+    { "key": "cream", "label": "Cream", "hex": "#f1e9d8", "neutral": true, "temperature": "warm" },
+    { "key": "brown", "label": "Brown", "hex": "#6b4a34", "neutral": true, "temperature": "warm" },
+    { "key": "olive", "label": "Olive", "hex": "#6b6a3a", "neutral": true, "temperature": "warm" },
+    { "key": "khaki", "label": "Khaki", "hex": "#c3b28f", "neutral": true, "temperature": "warm" },
+    { "key": "red", "label": "Red", "hex": "#c23b3b", "neutral": false, "temperature": "warm" },
+    { "key": "burgundy", "label": "Burgundy", "hex": "#6d2536", "neutral": false, "temperature": "warm" },
+    { "key": "orange", "label": "Orange", "hex": "#d97a3f", "neutral": false, "temperature": "warm" },
+    { "key": "yellow", "label": "Yellow", "hex": "#e0c04c", "neutral": false, "temperature": "warm" },
+    { "key": "green", "label": "Green", "hex": "#3f7a52", "neutral": false, "temperature": "cool" },
+    { "key": "blue", "label": "Blue", "hex": "#3a6ea5", "neutral": false, "temperature": "cool" },
+    { "key": "purple", "label": "Purple", "hex": "#6b4a8a", "neutral": false, "temperature": "cool" },
+    { "key": "pink", "label": "Pink", "hex": "#d98aa3", "neutral": false, "temperature": "warm" }
+  ],
+
+  "goodAccentPairs": {
+    "_comment": "OPINIONATED: which accent colors read as harmonious together when both appear in one outfit.",
+    "red": ["black", "white", "denim-blue", "khaki"],
+    "burgundy": ["cream", "navy", "beige", "grey"],
+    "orange": ["navy", "denim-blue", "white", "olive"],
+    "yellow": ["navy", "denim-blue", "grey", "black"],
+    "green": ["beige", "cream", "white", "khaki"],
+    "blue": ["white", "grey", "beige", "khaki"],
+    "purple": ["grey", "black", "cream"],
+    "pink": ["white", "grey", "denim-blue", "olive"]
+  },
+
+  "clashingPairs": {
+    "_comment": "OPINIONATED: accent+accent combos flagged as a clash when both appear without a dominant neutral base.",
+    "pairs": [
+      ["red", "orange"],
+      ["red", "pink"],
+      ["orange", "purple"],
+      ["yellow", "purple"],
+      ["green", "red"]
+    ]
+  },
+
+  "metalPairings": {
+    "_comment": "OPINIONATED: gold reads warmer/dressier-casual, silver reads cooler/sportier-streetwear. Mixed metals are treated as neutral (no bonus or penalty).",
+    "gold": { "prefersTemperature": "warm", "styleLean": ["clean-minimal", "dressy", "preppy", "vintage-retro"] },
+    "silver": { "prefersTemperature": "cool", "styleLean": ["streetwear", "sporty", "clean-minimal"] }
+  },
+
+  "maxAccentColors": 1
+}

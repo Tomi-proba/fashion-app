@@ -1,0 +1,32 @@
+{
+  "_comment": "OPINIONATED: which materials/weights and accessory metals read as suited to each season.",
+
+  "summer": {
+    "label": "Summer",
+    "preferredMaterials": ["cotton", "linen", "mesh", "seersucker"],
+    "weight": "light",
+    "metalLean": "gold",
+    "note": "Thin/light frames and fabrics read lighter and more summery."
+  },
+  "winter": {
+    "label": "Winter",
+    "preferredMaterials": ["wool", "fleece", "denim", "leather", "corduroy"],
+    "weight": "heavy",
+    "metalLean": "silver",
+    "note": "Heavier layers and darker, chunkier accessories read as winter-appropriate."
+  },
+  "spring": {
+    "label": "Spring",
+    "preferredMaterials": ["cotton", "denim", "light wool"],
+    "weight": "medium-light",
+    "metalLean": "gold",
+    "note": ""
+  },
+  "autumn": {
+    "label": "Autumn",
+    "preferredMaterials": ["wool", "denim", "corduroy", "leather"],
+    "weight": "medium-heavy",
+    "metalLean": "silver",
+    "note": ""
+  }
+}

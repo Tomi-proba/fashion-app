@@ -1,0 +1,46 @@
+{
+  "_comment": "OPINIONATED: base descriptions + fit lean per look, used for explanations and generator filtering.",
+
+  "streetwear": {
+    "label": "Streetwear",
+    "description": "Bold silhouettes, sneakers, graphic or utility pieces, confident layering.",
+    "fitLean": ["relaxed", "oversized"],
+    "accessoryLean": ["chunky", "silver", "logo"]
+  },
+  "smart-casual": {
+    "label": "Smart Casual",
+    "description": "Polished but relaxed — the office-to-dinner middle ground.",
+    "fitLean": ["regular", "slim"],
+    "accessoryLean": ["understated"]
+  },
+  "clean-minimal": {
+    "label": "Clean Minimal",
+    "description": "Neutral palette, simple lines, little pattern, quality basics.",
+    "fitLean": ["regular", "slim"],
+    "accessoryLean": ["thin", "gold", "silver"]
+  },
+  "vintage-retro": {
+    "label": "Vintage / Retro",
+    "description": "Era-flavoured pieces — think 70s/90s cuts, warm tones, worn-in denim.",
+    "fitLean": ["regular", "relaxed"],
+    "accessoryLean": ["gold", "statement"]
+  },
+  "preppy": {
+    "label": "Preppy",
+    "description": "Collars, knits, tailored-but-easy pieces, classic Ivy-League-adjacent styling.",
+    "fitLean": ["slim", "regular"],
+    "accessoryLean": ["gold", "structured"]
+  },
+  "sporty": {
+    "label": "Sporty",
+    "description": "Performance and athleisure pieces built for movement.",
+    "fitLean": ["regular", "relaxed"],
+    "accessoryLean": ["silver", "minimal"]
+  },
+  "dressy": {
+    "label": "Dressy",
+    "description": "Elevated occasion-wear — tailoring, fewer but higher-impact pieces.",
+    "fitLean": ["slim", "regular"],
+    "accessoryLean": ["gold", "silver", "statement"]
+  }
+}

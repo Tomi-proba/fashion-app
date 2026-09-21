@@ -1,0 +1,24 @@
+{
+  "_comment": "OPINIONATED: a 1-5 formality scale and how far apart two items' formality can be before it reads as a mismatch.",
+
+  "scale": {
+    "1": "Very casual (gym, beach, lounging)",
+    "2": "Casual (everyday, weekend)",
+    "3": "Smart casual (uni, dinner, office-adjacent)",
+    "4": "Dressy (nice dinner, party, semi-formal event)",
+    "5": "Formal (wedding guest, gala, black tie)"
+  },
+
+  "maxSpreadWithinOutfit": 1,
+  "maxSpreadWithReason": 2,
+
+  "styleFormalityRange": {
+    "streetwear": [1, 3],
+    "sporty": [1, 2],
+    "clean-minimal": [2, 4],
+    "smart-casual": [2, 4],
+    "preppy": [2, 4],
+    "vintage-retro": [1, 4],
+    "dressy": [4, 5]
+  }
+}
