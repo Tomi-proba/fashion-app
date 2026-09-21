@@ -221,8 +221,10 @@ export default function LinkBuilder({ profile }: { profile: Profile }) {
                 className="flex items-center justify-between gap-3 rounded-xl border border-neutral-100 px-4 py-3 text-sm hover:bg-neutral-50 dark:border-neutral-800 dark:hover:bg-neutral-800/50"
               >
                 <span className="text-neutral-700 dark:text-neutral-200">
-                  {piece.color && COLOR_BY_KEY[piece.color] ? `${COLOR_BY_KEY[piece.color].label} ` : ''}
-                  {piece.description}
+                  {piece.description.charAt(0).toUpperCase() + piece.description.slice(1)}
+                  {piece.color && COLOR_BY_KEY[piece.color] && (
+                    <span className="text-neutral-400"> — in {COLOR_BY_KEY[piece.color].label.toLowerCase()}</span>
+                  )}
                 </span>
                 <span className="shrink-0 text-xs font-semibold text-neutral-400">Search →</span>
               </a>

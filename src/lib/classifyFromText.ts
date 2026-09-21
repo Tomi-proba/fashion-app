@@ -49,6 +49,9 @@ export function classifyFromText(text: string): ClassifiedGuess {
   for (const [style, keywords] of Object.entries(CLASSIFIER_STYLE_KEYWORDS)) {
     if (matchAny(lower, keywords)) styleTags.push(style as StyleTag)
   }
+  // Never leave this empty — an undetected style would leave "Suggest outfit" permanently
+  // disabled with no obvious cause. Fall back to the most neutral, broadly-applicable look.
+  if (styleTags.length === 0) styleTags.push('clean-minimal')
 
   let seasons: Season[] = []
   for (const [season, keywords] of Object.entries(CLASSIFIER_SEASON_KEYWORDS)) {

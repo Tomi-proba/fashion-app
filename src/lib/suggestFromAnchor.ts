@@ -77,7 +77,10 @@ export function suggestOutfitFromAnchor(anchor: AnchorGuess, dislikedColors: str
     const description = styleDef.suggestedPieces[slot]
     const color = paletteColors[(idx + 1) % paletteColors.length] ?? null
     const colorLabel = color ? COLOR_BY_KEY[color]?.label : ''
-    const query = `${colorLabel} ${description}`.trim()
+    // Suffix, not prefix — several suggestedPieces phrases already start with "a"/"an" or
+    // mention their own tone (e.g. "gold or silver jewelry"), so prepending a color read
+    // as broken grammar ("Denim blue a single neutral overcoat").
+    const query = colorLabel ? `${description} in ${colorLabel.toLowerCase()}` : description
     return { slot, description, color, searchUrl: buildSearchUrl(query) }
   })
 
