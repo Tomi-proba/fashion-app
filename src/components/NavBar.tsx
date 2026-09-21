@@ -1,8 +1,9 @@
-export type Page = 'onboarding' | 'wardrobe' | 'generator' | 'buy-check' | 'colors' | 'saved'
+export type Page = 'onboarding' | 'wardrobe' | 'generator' | 'link-builder' | 'buy-check' | 'colors' | 'saved'
 
 const TABS: { id: Page; label: string }[] = [
   { id: 'wardrobe', label: 'Wardrobe' },
   { id: 'generator', label: 'Generate' },
+  { id: 'link-builder', label: 'From a link' },
   { id: 'buy-check', label: 'Should I buy?' },
   { id: 'colors', label: 'Color combos' },
   { id: 'saved', label: 'Saved' },

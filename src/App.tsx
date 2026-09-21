@@ -14,6 +14,7 @@ import NavBar, { type Page } from './components/NavBar'
 import Onboarding from './pages/Onboarding'
 import Wardrobe from './pages/Wardrobe'
 import Generator from './pages/Generator'
+import LinkBuilder from './pages/LinkBuilder'
 import BuyCheck from './pages/BuyCheck'
 import ColorCombos from './pages/ColorCombos'
 import Saved from './pages/Saved'
@@ -93,6 +94,8 @@ export default function App() {
           onGoToWardrobe={() => setPage('wardrobe')}
         />
       )}
+
+      {page === 'link-builder' && <LinkBuilder profile={profile} />}
 
       {page === 'buy-check' && <BuyCheck wardrobe={wardrobe} onAddToWardrobe={addItem} />}
 

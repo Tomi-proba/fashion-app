@@ -3,6 +3,7 @@ import formalityConfig from './config/formality.json'
 import stylesConfig from './config/styles.json'
 import seasonsConfig from './config/seasons.json'
 import occasionsConfig from './config/occasions.json'
+import classifierKeywordsConfig from './config/classifierKeywords.json'
 import type { Occasion, Season, StyleTag } from './types'
 
 export interface ColorDef {
@@ -35,6 +36,8 @@ export const STYLE_FORMALITY_RANGE: Record<string, [number, number]> = formality
   [number, number]
 >
 
+export type BodySlot = 'top' | 'bottom' | 'footwear' | 'outerwear' | 'accessory'
+
 export interface StyleDef {
   label: string
   description: string
@@ -42,6 +45,7 @@ export interface StyleDef {
   accessoryLean: string[]
   archetype: string
   suggestedColors: string[]
+  suggestedPieces: Record<BodySlot, string>
 }
 
 export const STYLE_DEFS: Record<StyleTag, StyleDef> = stylesConfig as unknown as Record<StyleTag, StyleDef>
@@ -58,3 +62,10 @@ export const SEASON_DEFS: Record<Season, SeasonDef> = seasonsConfig as unknown a
 
 export const OCCASIONS: Occasion[] = occasionsConfig.occasions as Occasion[]
 export const OCCASION_BY_ID: Record<string, Occasion> = Object.fromEntries(OCCASIONS.map((o) => [o.id, o]))
+
+export const CLASSIFIER_CATEGORY_KEYWORDS: Record<string, string[]> = classifierKeywordsConfig.categoryKeywords
+export const CLASSIFIER_COLOR_SYNONYMS: Record<string, string[]> = classifierKeywordsConfig.colorSynonyms
+export const CLASSIFIER_STYLE_KEYWORDS: Record<string, string[]> = classifierKeywordsConfig.styleKeywords
+export const CLASSIFIER_SEASON_KEYWORDS: Record<string, string[]> = classifierKeywordsConfig.seasonKeywords
+export const CLASSIFIER_METAL_KEYWORDS: Record<string, string[]> = classifierKeywordsConfig.metalKeywords
+export const CLASSIFIER_FORMALITY_KEYWORDS: Record<string, string[]> = classifierKeywordsConfig.formalityKeywords

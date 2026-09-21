@@ -1,5 +1,5 @@
 {
-  "_comment": "OPINIONATED: base descriptions + fit lean per look, used for explanations and generator filtering. archetype + suggestedColors power the wardrobe-free 'Suggested outfit & colors' button — a generic formula for the look, not drawn from the user's own items.",
+  "_comment": "OPINIONATED: base descriptions + fit lean per look, used for explanations and generator filtering. archetype + suggestedColors power the wardrobe-free 'Suggested outfit & colors' button — a generic formula for the look, not drawn from the user's own items. suggestedPieces (one phrase per body slot) powers the 'Build around a link' flow's complementary-piece suggestions.",
 
   "streetwear": {
     "label": "Streetwear",
@@ -7,7 +7,14 @@
     "fitLean": ["relaxed", "oversized"],
     "accessoryLean": ["chunky", "silver", "logo"],
     "archetype": "Oversized hoodie or graphic tee, relaxed straight-leg denim, chunky sneakers, one statement accessory (cap, chain, or bold sunglasses).",
-    "suggestedColors": ["black", "white", "grey", "navy"]
+    "suggestedColors": ["black", "white", "grey", "navy"],
+    "suggestedPieces": {
+      "top": "an oversized graphic tee or hoodie",
+      "bottom": "relaxed straight-leg jeans or cargo pants",
+      "footwear": "chunky sneakers",
+      "outerwear": "a bomber or varsity jacket",
+      "accessory": "a bold cap, chain, or statement sunglasses"
+    }
   },
   "smart-casual": {
     "label": "Smart Casual",
@@ -15,7 +22,14 @@
     "fitLean": ["regular", "slim"],
     "accessoryLean": ["understated"],
     "archetype": "Button-down or fine knit, tailored chinos or dark jeans, clean leather sneakers or loafers, minimal accessories.",
-    "suggestedColors": ["navy", "white", "beige", "grey"]
+    "suggestedColors": ["navy", "white", "beige", "grey"],
+    "suggestedPieces": {
+      "top": "a button-down or fine knit",
+      "bottom": "tailored chinos or dark jeans",
+      "footwear": "clean leather sneakers or loafers",
+      "outerwear": "a lightweight overshirt or blazer",
+      "accessory": "a simple leather watch or belt"
+    }
   },
   "clean-minimal": {
     "label": "Clean Minimal",
@@ -23,7 +37,14 @@
     "fitLean": ["regular", "slim"],
     "accessoryLean": ["thin", "gold", "silver"],
     "archetype": "Single solid tee or shirt, straight trousers or jeans, one neutral outerwear layer, thin gold or silver jewelry.",
-    "suggestedColors": ["white", "black", "beige", "grey"]
+    "suggestedColors": ["white", "black", "beige", "grey"],
+    "suggestedPieces": {
+      "top": "a solid tee or shirt",
+      "bottom": "straight-leg trousers or jeans",
+      "footwear": "minimal low-top sneakers",
+      "outerwear": "a single neutral overcoat or jacket",
+      "accessory": "thin gold or silver jewelry"
+    }
   },
   "vintage-retro": {
     "label": "Vintage / Retro",
@@ -31,7 +52,14 @@
     "fitLean": ["regular", "relaxed"],
     "accessoryLean": ["gold", "statement"],
     "archetype": "Worn-in denim or corduroy, a warm-toned knit or graphic tee, leather boots, gold-frame sunglasses or a chunky watch.",
-    "suggestedColors": ["brown", "olive", "cream", "burgundy"]
+    "suggestedColors": ["brown", "olive", "cream", "burgundy"],
+    "suggestedPieces": {
+      "top": "a warm-toned knit or graphic tee",
+      "bottom": "worn-in denim or corduroy pants",
+      "footwear": "leather boots",
+      "outerwear": "a corduroy or denim jacket",
+      "accessory": "gold-frame sunglasses or a chunky watch"
+    }
   },
   "preppy": {
     "label": "Preppy",
@@ -39,7 +67,14 @@
     "fitLean": ["slim", "regular"],
     "accessoryLean": ["gold", "structured"],
     "archetype": "Collared shirt or polo, a knit sweater layered over or on the shoulders, chinos, loafers or boat shoes, a leather belt.",
-    "suggestedColors": ["navy", "white", "khaki", "burgundy"]
+    "suggestedColors": ["navy", "white", "khaki", "burgundy"],
+    "suggestedPieces": {
+      "top": "a collared shirt or polo",
+      "bottom": "chinos",
+      "footwear": "loafers or boat shoes",
+      "outerwear": "a knit sweater or blazer",
+      "accessory": "a leather belt or gold jewelry"
+    }
   },
   "sporty": {
     "label": "Sporty",
@@ -47,7 +82,14 @@
     "fitLean": ["regular", "relaxed"],
     "accessoryLean": ["silver", "minimal"],
     "archetype": "Performance tee or zip-up, joggers or track pants, clean trainers, a sports watch.",
-    "suggestedColors": ["black", "grey", "white", "blue"]
+    "suggestedColors": ["black", "grey", "white", "blue"],
+    "suggestedPieces": {
+      "top": "a performance tee or zip-up",
+      "bottom": "joggers or track pants",
+      "footwear": "clean trainers",
+      "outerwear": "a lightweight track jacket",
+      "accessory": "a sports watch"
+    }
   },
   "dressy": {
     "label": "Dressy",
@@ -55,6 +97,13 @@
     "fitLean": ["slim", "regular"],
     "accessoryLean": ["gold", "silver", "statement"],
     "archetype": "Tailored blazer or a fitted dress, structured trousers or a tailored skirt, heeled or polished dress shoes, one statement jewelry piece.",
-    "suggestedColors": ["black", "burgundy", "navy", "cream"]
+    "suggestedColors": ["black", "burgundy", "navy", "cream"],
+    "suggestedPieces": {
+      "top": "a tailored blouse or fitted shirt",
+      "bottom": "structured trousers or a tailored skirt",
+      "footwear": "heeled or polished dress shoes",
+      "outerwear": "a tailored blazer",
+      "accessory": "one statement jewelry piece"
+    }
   }
 }

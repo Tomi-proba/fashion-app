@@ -1,0 +1,68 @@
+{
+  "_comment": "OPINIONATED: a free, offline keyword heuristic used to guess an item's category/color/style/formality/season from a pasted link + description in the 'Build around a link' flow. This is intentionally rough — no AI call, no page fetch — the UI always shows the guess as editable chips so it can be corrected.",
+
+  "categoryKeywords": {
+    "top": ["shirt", "tee", "t-shirt", "tshirt", "blouse", "sweater", "hoodie", "sweatshirt", "polo", "tank", "jersey", "cardigan", "knit", "top"],
+    "bottom": ["jeans", "denim", "pants", "trouser", "chino", "shorts", "skirt", "legging", "jogger", "sweatpant"],
+    "outerwear": ["jacket", "coat", "blazer", "parka", "bomber", "overshirt", "vest", "windbreaker", "cardigan coat"],
+    "footwear": ["sneaker", "shoe", "boot", "loafer", "sandal", "heel", "trainer", "oxford shoe", "flat", "mule"],
+    "dress": ["dress", "gown", "jumpsuit", "romper"],
+    "bag": ["bag", "backpack", "tote", "purse", "handbag", "satchel", "crossbody"],
+    "sunglasses": ["sunglasses", "shades", "sunnies"],
+    "watch": ["watch", "timepiece"],
+    "jewelry": ["necklace", "bracelet", "ring", "earring", "jewelry", "jewellery", "pendant", "chain"],
+    "hat": ["hat", "cap", "beanie", "fedora", "bucket hat"],
+    "belt": ["belt"]
+  },
+
+  "colorSynonyms": {
+    "black": ["black", "jet black", "onyx"],
+    "white": ["white", "off-white", "off white"],
+    "grey": ["grey", "gray", "heather grey", "heather gray"],
+    "charcoal": ["charcoal"],
+    "navy": ["navy", "navy blue"],
+    "denim-blue": ["denim", "indigo", "denim blue", "jean blue"],
+    "beige": ["beige", "tan", "sand", "stone"],
+    "cream": ["cream", "ivory", "ecru"],
+    "brown": ["brown", "chocolate", "coffee", "chestnut", "espresso"],
+    "olive": ["olive", "olive green", "army green"],
+    "khaki": ["khaki"],
+    "red": ["red", "crimson", "scarlet"],
+    "burgundy": ["burgundy", "maroon", "wine", "oxblood"],
+    "orange": ["orange", "rust", "terracotta"],
+    "yellow": ["yellow", "mustard"],
+    "green": ["green", "forest green", "emerald", "sage"],
+    "blue": ["blue", "sky blue", "cobalt", "royal blue"],
+    "purple": ["purple", "lavender", "violet", "lilac"],
+    "pink": ["pink", "rose", "blush", "fuchsia"]
+  },
+
+  "styleKeywords": {
+    "streetwear": ["streetwear", "street style", "hype", "oversized", "graphic", "skate", "cargo"],
+    "smart-casual": ["smart casual", "business casual", "office"],
+    "clean-minimal": ["minimal", "minimalist", "clean", "basic", "capsule"],
+    "vintage-retro": ["vintage", "retro", "y2k", "90s", "70s", "throwback"],
+    "preppy": ["preppy", "ivy", "collegiate", "varsity"],
+    "sporty": ["sporty", "athletic", "performance", "gym", "running", "activewear"],
+    "dressy": ["formal", "dressy", "black tie", "gala", "cocktail", "gown", "tuxedo"]
+  },
+
+  "seasonKeywords": {
+    "summer": ["summer", "linen", "shorts", "sandals", "beach"],
+    "winter": ["winter", "wool", "fleece", "puffer", "thermal", "coat"],
+    "spring": ["spring", "light jacket"],
+    "autumn": ["autumn", "fall", "corduroy"]
+  },
+
+  "metalKeywords": {
+    "gold": ["gold", "brass"],
+    "silver": ["silver", "chrome", "steel", "platinum"]
+  },
+
+  "formalityKeywords": {
+    "5": ["formal", "gala", "black tie", "tuxedo", "gown"],
+    "4": ["dressy", "cocktail", "blazer", "suit"],
+    "3": ["smart casual", "chino", "oxford shoe", "business casual"],
+    "1": ["gym", "athletic", "sweatpant", "activewear", "loungewear"]
+  }
+}
